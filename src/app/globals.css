@@ -1,0 +1,123 @@
+@import "tailwindcss";
+
+:root {
+  --paper: #f3efe6;
+  --ink: #1d1a15;
+  --muted: #615b51;
+  --line: #ddd4c4;
+  --card: #fffdf8;
+  --green: #0e6b4f;
+  --green-soft: #e6f3ed;
+  --red: #8d2f2f;
+  --red-soft: #f8e8e4;
+  --amber: #8a5a12;
+  --amber-soft: #f8efd8;
+  --shadow: 0 1px 0 rgba(29, 26, 21, 0.04);
+}
+
+body {
+  background:
+    radial-gradient(circle at top left, rgba(14, 107, 79, 0.08), transparent 28rem),
+    var(--paper);
+  color: var(--ink);
+  font-family: "Avenir Next", "Segoe UI", sans-serif;
+}
+
+a {
+  color: inherit;
+}
+
+h1,
+h2,
+.serif {
+  font-family: "Iowan Old Style", Palatino, Georgia, serif;
+  font-weight: 500;
+}
+
+.panel {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  box-shadow: var(--shadow);
+}
+
+.btn {
+  display: inline-block;
+  border: 1px solid var(--green);
+  background: var(--green);
+  color: white;
+  border-radius: 999px;
+  padding: 0.45rem 0.9rem;
+  font-size: 0.92rem;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.btn.secondary {
+  background: transparent;
+  color: var(--ink);
+  border-color: var(--line);
+}
+
+.btn.danger {
+  background: transparent;
+  color: var(--red);
+  border-color: #e4c4bc;
+}
+
+.btn:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--green);
+  outline-offset: 2px;
+}
+
+.field {
+  display: grid;
+  gap: 0.3rem;
+  font-size: 0.92rem;
+}
+
+.field span {
+  color: var(--muted);
+}
+
+input,
+textarea,
+select {
+  width: 100%;
+  border: 1px solid var(--line);
+  background: white;
+  border-radius: 12px;
+  padding: 0.65rem 0.75rem;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0.15rem 0.55rem;
+  font-size: 0.78rem;
+  letter-spacing: 0.01em;
+  background: var(--amber-soft);
+  color: var(--amber);
+}
+
+.chip[data-status="ready_for_review"],
+.chip[data-status="accepted"] {
+  background: var(--green-soft);
+  color: var(--green);
+}
+
+.chip[data-status="failed"],
+.chip[data-status="rejected"] {
+  background: var(--red-soft);
+  color: var(--red);
+}
+
+.unknown {
+  color: var(--muted);
+  font-style: italic;
+}
