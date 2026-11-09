@@ -1,6 +1,14 @@
 import { NextResponse } from "next/server";
 import { AppError } from "./domain";
 
+export function redirectTo(request: Request, path: string) {
+  const url = new URL(path, request.url);
+  return new NextResponse(null, {
+    status: 303,
+    headers: { Location: `${url.pathname}${url.search}` },
+  });
+}
+
 export function wantsHtml(request: Request): boolean {
   const type = request.headers.get("content-type") ?? "";
   if (type.includes("application/json")) return false;
@@ -18,7 +26,7 @@ export function jsonOrRedirect(
   if (!wantsHtml(request)) return NextResponse.json(body, { status });
   const url = new URL(body.error ? errorPath : successPath, request.url);
   if (body.error) url.searchParams.set("error", body.error);
-  return NextResponse.redirect(url, 303);
+  return redirectTo(request, `${url.pathname}${url.search}`);
 }
 
 export function errorResponse(request: Request, error: unknown, errorPath: string) {

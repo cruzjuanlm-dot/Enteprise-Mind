@@ -6,12 +6,13 @@ import { SAMPLE_TRANSCRIPT } from "../src/lib/sample";
 
 test("deterministic extractor keeps unknown fields unknown", () => {
   const units = extractDeterministic(SAMPLE_TRANSCRIPT);
-  assert.equal(units.length, 2);
+  assert.equal(units.length, 3);
 
   const decision = units[0];
   assert.equal(decision.unitType, "design_decision");
+  assert.equal(decision.title, "Name an owner before a firmware task leaves review");
   assert.equal(decision.ownerPresence, "known");
-  assert.equal(decision.ownerName, "Project lead");
+  assert.equal(decision.ownerName, "Field systems lead");
   assert.deepEqual(decision.dependencies, []);
   assert.equal(decision.dependenciesPresence, "known");
   assert.deepEqual(decision.systemsTouched, ["Review queue"]);
@@ -23,11 +24,20 @@ test("deterministic extractor keeps unknown fields unknown", () => {
   assert.equal(task.unitType, "pending_task");
   assert.equal(task.ownerPresence, "unknown");
   assert.equal(task.ownerName, null);
-  assert.deepEqual(task.dependencies, ["Record an owner on every task"]);
+  assert.deepEqual(task.dependencies, ["Name an owner before a firmware task leaves review"]);
   assert.equal(task.systemsPresence, "unknown");
   assert.equal(task.duePresence, "unknown");
   assert.equal(task.approvalRequired, false);
   assert.equal(task.approvalPresence, "known");
+
+  const term = units[2];
+  assert.equal(term.unitType, "glossary_term");
+  assert.equal(term.title, "Hold point");
+  assert.equal(term.ownerPresence, "known");
+  assert.equal(term.ownerName, "Field systems lead");
+  assert.equal(term.dependenciesPresence, "unknown");
+  assert.equal(term.systemsPresence, "unknown");
+  assert.equal(term.approvalPresence, "unknown");
 });
 
 test("missing execution fields are not invented", () => {

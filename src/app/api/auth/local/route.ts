@@ -13,7 +13,7 @@ export async function POST(request: Request) {
   const email = stringField(form, "email") ?? "";
   const account = findLocalAccount(email);
   if (!account) return NextResponse.json({ error: "unknown_local_user" }, { status: 400 });
-  const response = NextResponse.redirect(new URL("/review", request.url), 303);
+  const response = new NextResponse(null, { status: 303, headers: { Location: "/review" } });
   response.cookies.set(LOCAL_COOKIE, account.id, {
     httpOnly: true,
     sameSite: "lax",

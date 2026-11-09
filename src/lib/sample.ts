@@ -1,17 +1,29 @@
-export const SAMPLE_TRANSCRIPT = `Decision: Record an owner on every task
-Owner: Project lead
+// Synthetic Hearthline Instruments transcript. It is a demo fixture, not a stored record.
+export const SAMPLE_TITLE = "Monday sensor review";
+
+export const SAMPLE_TRANSCRIPT = `Decision: Name an owner before a firmware task leaves review
+Owner: Field systems lead
 Dependencies: none
 Systems: Review queue
-Acceptance: Each accepted task shows an owner or an explicit unknown
+Acceptance: Each accepted task names an owner or shows an explicit unknown
 Due: 2026-12-15
 Approval: required
-Details: Tasks without an owner stay in review.
+Details: Hearthline firmware tasks without an owner stay proposed. They are not written into shared project context.
 
-Task: File the weekly meeting under the pilot project
+Task: File the Monday sensor review on Sensor firmware review
 Owner: unknown
-Dependencies: Record an owner on every task
+Dependencies: Name an owner before a firmware task leaves review
 Systems: unknown
-Acceptance: The transcript shows the pilot project as its home
+Acceptance: The transcript is filed on Sensor firmware review
 Due: unknown
 Approval: not required
-Details: Assignment can happen at ingest or during review.`;
+Details: Assignment happens at ingest. The reader must not invent an owner.
+
+Term: Hold point
+Owner: Field systems lead
+Dependencies: unknown
+Systems: unknown
+Acceptance: unknown
+Due: unknown
+Approval: unknown
+Details: A firmware change that stays proposed until an owner is named. Alias: hold. Scoped to Sensor firmware review at Hearthline Instruments.`;

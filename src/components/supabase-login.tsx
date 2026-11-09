@@ -44,7 +44,11 @@ export function SupabaseLogin() {
         <span>Password</span>
         <input name="password" type="password" autoComplete="current-password" required />
       </label>
-      {error ? <p className="text-sm text-[var(--red)]">{error}</p> : null}
+      {error ? (
+        <p className="notice" data-tone="danger" role="alert">
+          {error}
+        </p>
+      ) : null}
       <button className="btn" type="submit" disabled={pending}>
         {pending ? "Signing in" : "Sign in"}
       </button>

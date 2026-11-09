@@ -329,31 +329,31 @@ function seedState(): State {
   return {
     users: LOCAL_ACCOUNTS.map((account) => ({ id: account.id, email: account.email })),
     tenants: [
-      { id: FIXTURES.pilotTenant, name: "Pilot", slug: "pilot" },
-      { id: FIXTURES.otherTenant, name: "Other", slug: "other" },
+      { id: FIXTURES.pilotTenant, name: "Hearthline Instruments", slug: "pilot" },
+      { id: FIXTURES.otherTenant, name: "Bramble Civic Works", slug: "other" },
     ],
     departments: [
-      { id: FIXTURES.deliveryDept, tenantId: FIXTURES.pilotTenant, name: "Delivery" },
-      { id: FIXTURES.otherDept, tenantId: FIXTURES.otherTenant, name: "Operations" },
+      { id: FIXTURES.deliveryDept, tenantId: FIXTURES.pilotTenant, name: "Field Systems" },
+      { id: FIXTURES.otherDept, tenantId: FIXTURES.otherTenant, name: "Records" },
     ],
     projects: [
       {
         id: FIXTURES.rolloutProject,
         tenantId: FIXTURES.pilotTenant,
         departmentId: FIXTURES.deliveryDept,
-        name: "Pilot rollout",
+        name: "Sensor firmware review",
       },
       {
         id: FIXTURES.restrictedProject,
         tenantId: FIXTURES.pilotTenant,
         departmentId: FIXTURES.deliveryDept,
-        name: "Restricted project",
+        name: "Calibration vault",
       },
       {
         id: FIXTURES.otherProject,
         tenantId: FIXTURES.otherTenant,
         departmentId: FIXTURES.otherDept,
-        name: "Other work",
+        name: "Ledger cleanup",
       },
     ],
     memberships: [
