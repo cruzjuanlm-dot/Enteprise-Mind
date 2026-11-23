@@ -1,0 +1,145 @@
+[
+  {
+    "id": "system.kiln-ledger",
+    "type": "system",
+    "name": "Kiln Ledger",
+    "summary": "Bench log of firing curves for the Kilnwatch instrument.",
+    "kind": "product",
+    "status": "active"
+  },
+  {
+    "id": "system.studio-portal",
+    "type": "system",
+    "name": "Studio Portal",
+    "summary": "Studio view of the curves a teaching studio is allowed to see.",
+    "kind": "product",
+    "status": "active"
+  },
+  {
+    "id": "system.glaze-notebook",
+    "type": "system",
+    "name": "Glaze Notebook",
+    "summary": "Proposed notebook for glaze recipes. Not connected to Kilnwatch curves.",
+    "kind": "product",
+    "status": "proposed"
+  },
+  {
+    "id": "environment.kiln-ledger-bench",
+    "type": "environment",
+    "name": "Kiln Ledger bench",
+    "summary": "Bench where Kiln Ledger is exercised before a teaching day.",
+    "system_id": "system.kiln-ledger",
+    "stage": "bench"
+  },
+  {
+    "id": "environment.studio-portal-demo",
+    "type": "environment",
+    "name": "Studio Portal demo",
+    "summary": "Demo studio used to read a released curve.",
+    "system_id": "system.studio-portal",
+    "stage": "studio"
+  },
+  {
+    "id": "data-source.firing-curves",
+    "type": "data_source",
+    "name": "Firing curves",
+    "summary": "Reduced firing curves. No recordings.",
+    "system_id": "system.kiln-ledger",
+    "source_kind": "table"
+  },
+  {
+    "id": "table-schema.firing-curve",
+    "type": "table_schema",
+    "name": "Firing curve table",
+    "summary": "Columns stored for one firing curve.",
+    "data_source_id": "data-source.firing-curves",
+    "columns": [
+      { "name": "curve_id", "description": "Stable id for one firing curve." },
+      { "name": "studio_code", "description": "Short code for the teaching studio." },
+      { "name": "peak_celsius", "description": "Highest temperature recorded on the curve." },
+      { "name": "recorded_on", "description": "Calendar day the firing was logged." }
+    ]
+  },
+  {
+    "id": "integration.ledger-to-portal",
+    "type": "integration",
+    "name": "Ledger to portal",
+    "summary": "Copies a released curve from Kiln Ledger to Studio Portal.",
+    "from_system_id": "system.kiln-ledger",
+    "to_system_id": "system.studio-portal",
+    "status": "active"
+  },
+  {
+    "id": "workflow.calibration-check",
+    "type": "workflow",
+    "name": "Calibration check",
+    "summary": "Check the bench before a curve is released.",
+    "project_id": "project.kilnwatch"
+  },
+  {
+    "id": "project.kilnwatch",
+    "type": "project",
+    "name": "Kilnwatch teaching release",
+    "summary": "Teaching release of the Kilnwatch instrument software.",
+    "status": "active"
+  },
+  {
+    "id": "requirement.studio-sees-own-curve",
+    "type": "requirement",
+    "name": "Studio sees its own curve",
+    "summary": "A studio can read only the curves released for its studio code.",
+    "project_id": "project.kilnwatch",
+    "statement": "A studio can read only the curves released for its studio code."
+  },
+  {
+    "id": "use-case.instructor-opens-curve",
+    "type": "use_case",
+    "name": "Instructor opens a curve",
+    "summary": "A studio lead opens one released curve in Studio Portal.",
+    "system_id": "system.studio-portal",
+    "actor_role_id": "person-role.studio-lead"
+  },
+  {
+    "id": "test-case.curve-stays-in-studio",
+    "type": "test_case",
+    "name": "Curve stays in the studio",
+    "summary": "A curve released for one studio code is not listed for another.",
+    "requirement_id": "requirement.studio-sees-own-curve",
+    "expected": "The other studio code sees an empty sheet."
+  },
+  {
+    "id": "milestone.bench-demo",
+    "type": "milestone",
+    "name": "Bench demo",
+    "summary": "Bench demo of a released curve on the portal.",
+    "project_id": "project.kilnwatch",
+    "target_on": "2026-12-01",
+    "status": "planned"
+  },
+  {
+    "id": "decision.no-recordings",
+    "type": "decision",
+    "name": "No firing recordings",
+    "summary": "Firing recordings are not stored.",
+    "project_id": "project.kilnwatch",
+    "state": "accepted"
+  },
+  {
+    "id": "person-role.calibration-owner",
+    "type": "person_role",
+    "name": "Calibration owner",
+    "summary": "Owns the calibration check on the bench."
+  },
+  {
+    "id": "person-role.studio-lead",
+    "type": "person_role",
+    "name": "Studio lead",
+    "summary": "Opens released curves for a teaching studio."
+  },
+  {
+    "id": "person-role.catalog-editor",
+    "type": "person_role",
+    "name": "Catalog editor",
+    "summary": "Owns governed units in the catalog."
+  }
+]

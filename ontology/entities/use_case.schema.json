@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://enterprise-mind.local/ontology/use_case.schema.json",
+  "title": "Use case",
+  "description": "A role doing one thing with a system.",
+  "type": "object",
+  "additionalProperties": false,
+  "x-source-of-truth": "git",
+  "x-mirror-direction": "git_to_db",
+  "x-mirror-note": "Use cases are governed narratives in git. A later job copies them into the database.",
+  "required": ["id", "type", "name", "summary", "system_id", "actor_role_id"],
+  "properties": {
+    "id": { "type": "string", "pattern": "^use-case\\.[a-z0-9]+(?:-[a-z0-9]+)*$" },
+    "type": { "const": "use_case" },
+    "name": { "type": "string", "minLength": 1 },
+    "summary": { "type": "string", "minLength": 1 },
+    "system_id": { "type": "string", "pattern": "^system\\.[a-z0-9]+(?:-[a-z0-9]+)*$" },
+    "actor_role_id": { "type": "string", "pattern": "^person-role\\.[a-z0-9]+(?:-[a-z0-9]+)*$" }
+  }
+}

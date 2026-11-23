@@ -1,0 +1,80 @@
+import Link from "next/link";
+import { entityNames, listComps, listUnits } from "@/lib/catalog";
+import { BUCKETS, BUCKET_BLURB, BUCKET_LABEL } from "@/lib/frontmatter";
+
+export const dynamic = "force-static";
+
+export const metadata = {
+  title: "Catalog · Enterprise Mind",
+  description: "Governed Hearthline knowledge units, one file per unit.",
+};
+
+export default function CatalogPage() {
+  const units = listUnits();
+  const names = entityNames();
+  const comps = listComps();
+  return (
+    <main className="grid gap-6">
+      <section className="panel p-6">
+        <p className="text-sm uppercase tracking-[0.16em] text-[var(--green)]">Hearthline Instruments</p>
+        <h1 className="mt-2 text-4xl">Knowledge catalog</h1>
+        <p className="mt-4 max-w-2xl text-[var(--muted)]">
+          Each unit is a Markdown file in git. The version log is the git history of that file. Entity rows are
+          listed on the entities page.
+        </p>
+      </section>
+      {BUCKETS.map((bucket) => {
+        const items = units.filter((unit) => unit.bucket === bucket);
+        return (
+          <section key={bucket} className="grid gap-3">
+            <div>
+              <h2 className="text-3xl">{BUCKET_LABEL[bucket]}</h2>
+              <p className="text-sm text-[var(--muted)]">{BUCKET_BLURB[bucket]}</p>
+            </div>
+            {items.length === 0 ? (
+              <p className="panel p-4 text-sm text-[var(--muted)]">No units in this bucket yet.</p>
+            ) : (
+              items.map((unit) => (
+                <article key={unit.id} className="panel p-4">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h3 className="text-2xl">
+                      <Link href={`/catalog/${unit.bucket}/${unit.id}`}>{unit.title}</Link>
+                    </h3>
+                    <span className="chip" data-status={unit.status}>
+                      {unit.status}
+                    </span>
+                  </div>
+                  <p className="mt-2 text-sm text-[var(--muted)]">
+                    Version {unit.version} · {names.get(unit.owner) ?? unit.owner}
+                  </p>
+                </article>
+              ))
+            )}
+          </section>
+        );
+      })}
+      <section className="grid gap-3">
+        <div>
+          <h2 className="text-3xl">Compositions</h2>
+          <p className="text-sm text-[var(--muted)]">A composition points at units that belong in one reading.</p>
+        </div>
+        {comps.map((comp) => (
+          <article key={comp.id} className="panel p-4">
+            <h3 className="text-2xl">{comp.title}</h3>
+            <p className="mt-2 text-[var(--muted)]">{comp.summary}</p>
+            <ul className="mt-3 flex flex-wrap gap-3 text-sm">
+              {comp.units.map((unitId) => {
+                const unit = units.find((item) => item.id === unitId);
+                return (
+                  <li key={unitId}>
+                    {unit ? <Link href={`/catalog/${unit.bucket}/${unit.id}`}>{unit.title}</Link> : unitId}
+                  </li>
+                );
+              })}
+            </ul>
+          </article>
+        ))}
+      </section>
+    </main>
+  );
+}

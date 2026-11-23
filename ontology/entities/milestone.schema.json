@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://enterprise-mind.local/ontology/milestone.schema.json",
+  "title": "Milestone",
+  "description": "A dated checkpoint on a project.",
+  "type": "object",
+  "additionalProperties": false,
+  "x-source-of-truth": "db",
+  "x-mirror-direction": "db_to_git",
+  "x-mirror-note": "Dates and completion are transactional. A later job may publish a read-only snapshot into git.",
+  "required": ["id", "type", "name", "summary", "project_id", "target_on", "status"],
+  "properties": {
+    "id": { "type": "string", "pattern": "^milestone\\.[a-z0-9]+(?:-[a-z0-9]+)*$" },
+    "type": { "const": "milestone" },
+    "name": { "type": "string", "minLength": 1 },
+    "summary": { "type": "string", "minLength": 1 },
+    "project_id": { "type": "string", "pattern": "^project\\.[a-z0-9]+(?:-[a-z0-9]+)*$" },
+    "target_on": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$" },
+    "status": { "enum": ["planned", "done"] }
+  }
+}

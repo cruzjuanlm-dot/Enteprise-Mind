@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://enterprise-mind.local/ontology/data_source.schema.json",
+  "title": "Data source",
+  "description": "A source of records exposed by a system.",
+  "type": "object",
+  "additionalProperties": false,
+  "x-source-of-truth": "db",
+  "x-mirror-direction": "db_to_git",
+  "x-mirror-note": "Sources are operational records in the database. A later job may publish a read-only snapshot into git.",
+  "required": ["id", "type", "name", "summary", "system_id", "source_kind"],
+  "properties": {
+    "id": { "type": "string", "pattern": "^data-source\\.[a-z0-9]+(?:-[a-z0-9]+)*$" },
+    "type": { "const": "data_source" },
+    "name": { "type": "string", "minLength": 1 },
+    "summary": { "type": "string", "minLength": 1 },
+    "system_id": { "type": "string", "pattern": "^system\\.[a-z0-9]+(?:-[a-z0-9]+)*$" },
+    "source_kind": { "enum": ["table", "feed", "file"] }
+  }
+}

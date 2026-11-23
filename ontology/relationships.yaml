@@ -1,0 +1,61 @@
+# Legal edges between entity types. Instance rows live in ontology/seed/relationships.json.
+# The database is the system of record for those rows. A later job may copy them into git.
+# This slice does not run that job.
+source_of_truth: db
+mirror_direction: db_to_git
+mirror_note: >
+  Relationship rows are transactional. Git stores this catalog of legal edge types.
+  A later one-way job may copy the rows from the database into a generated git snapshot.
+edges:
+  - type: hosts
+    from: system
+    to: environment
+    description: A system is placed in an environment.
+  - type: exposes
+    from: system
+    to: data_source
+    description: A system exposes a data source.
+  - type: describes
+    from: data_source
+    to: table_schema
+    description: A data source is described by a table schema.
+  - type: connects
+    from: system
+    to: system
+    description: One system connects to another.
+  - type: carries
+    from: integration
+    to: data_source
+    description: An integration carries a data source.
+  - type: supports
+    from: workflow
+    to: project
+    description: A workflow supports a project.
+  - type: tracks
+    from: project
+    to: requirement
+    description: A project tracks a requirement.
+  - type: verifies
+    from: test_case
+    to: requirement
+    description: A test case verifies a requirement.
+  - type: schedules
+    from: project
+    to: milestone
+    description: A project schedules a milestone.
+  - type: exercises
+    from: use_case
+    to: system
+    description: A use case exercises a system.
+  - type: performed_by
+    from: use_case
+    to: person_role
+    description: A use case is performed by a role.
+  - type: governs
+    from: decision
+    to: project
+    description: A decision governs a project.
+  - type: staffs
+    from: person_role
+    to: workflow
+    description: A role staffs a workflow.

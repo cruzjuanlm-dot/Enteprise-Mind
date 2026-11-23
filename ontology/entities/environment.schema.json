@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://enterprise-mind.local/ontology/environment.schema.json",
+  "title": "Environment",
+  "description": "A place where a system runs.",
+  "type": "object",
+  "additionalProperties": false,
+  "x-source-of-truth": "db",
+  "x-mirror-direction": "db_to_git",
+  "x-mirror-note": "Stage and placement change in the database. A later job may publish a read-only snapshot into git.",
+  "required": ["id", "type", "name", "summary", "system_id", "stage"],
+  "properties": {
+    "id": { "type": "string", "pattern": "^environment\\.[a-z0-9]+(?:-[a-z0-9]+)*$" },
+    "type": { "const": "environment" },
+    "name": { "type": "string", "minLength": 1 },
+    "summary": { "type": "string", "minLength": 1 },
+    "system_id": { "type": "string", "pattern": "^system\\.[a-z0-9]+(?:-[a-z0-9]+)*$" },
+    "stage": { "enum": ["bench", "studio", "archive"] }
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://enterprise-mind.local/schema/comp.schema.json",
+  "title": "Composition",
+  "description": "A reading that points at knowledge units and entity ids. Git history is the version log.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "title", "summary", "version", "status", "owner", "units", "entities"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "summary": {
+      "type": "string",
+      "minLength": 1
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "status": {
+      "enum": ["draft", "accepted", "superseded"]
+    },
+    "owner": {
+      "type": "string",
+      "pattern": "^person-role\\.[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
+    "units": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+      }
+    },
+    "entities": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^(?:system|environment|data-source|table-schema|integration|workflow|project|requirement|use-case|test-case|milestone|decision|person-role)\\.[a-z0-9]+(?:-[a-z0-9]+)*$"
+      }
+    }
+  }
+}

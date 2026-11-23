@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://enterprise-mind.local/ontology/integration.schema.json",
+  "title": "Integration",
+  "description": "A hop that carries records from one system to another.",
+  "type": "object",
+  "additionalProperties": false,
+  "x-source-of-truth": "db",
+  "x-mirror-direction": "db_to_git",
+  "x-mirror-note": "Wiring and status are transactional records in the database. A later job may publish a read-only snapshot into git.",
+  "required": ["id", "type", "name", "summary", "from_system_id", "to_system_id", "status"],
+  "properties": {
+    "id": { "type": "string", "pattern": "^integration\\.[a-z0-9]+(?:-[a-z0-9]+)*$" },
+    "type": { "const": "integration" },
+    "name": { "type": "string", "minLength": 1 },
+    "summary": { "type": "string", "minLength": 1 },
+    "from_system_id": { "type": "string", "pattern": "^system\\.[a-z0-9]+(?:-[a-z0-9]+)*$" },
+    "to_system_id": { "type": "string", "pattern": "^system\\.[a-z0-9]+(?:-[a-z0-9]+)*$" },
+    "status": { "enum": ["proposed", "active", "paused"] }
+  }
+}

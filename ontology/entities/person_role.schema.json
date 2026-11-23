@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://enterprise-mind.local/ontology/person_role.schema.json",
+  "title": "Person role",
+  "description": "A role title. This slice does not store personal names.",
+  "type": "object",
+  "additionalProperties": false,
+  "x-source-of-truth": "db",
+  "x-mirror-direction": "db_to_git",
+  "x-mirror-note": "Role assignments are operational records. A later job may publish a read-only snapshot into git. Roles are titles, not named people.",
+  "required": ["id", "type", "name", "summary"],
+  "properties": {
+    "id": { "type": "string", "pattern": "^person-role\\.[a-z0-9]+(?:-[a-z0-9]+)*$" },
+    "type": { "const": "person_role" },
+    "name": { "type": "string", "minLength": 1 },
+    "summary": { "type": "string", "minLength": 1 }
+  }
+}

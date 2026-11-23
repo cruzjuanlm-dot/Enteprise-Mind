@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://enterprise-mind.local/ontology/table_schema.schema.json",
+  "title": "Table schema",
+  "description": "The columns of a data source.",
+  "type": "object",
+  "additionalProperties": false,
+  "x-source-of-truth": "git",
+  "x-mirror-direction": "git_to_db",
+  "x-mirror-note": "Column definitions are versioned in git. A later job copies the current definition into the database.",
+  "required": ["id", "type", "name", "summary", "data_source_id", "columns"],
+  "properties": {
+    "id": { "type": "string", "pattern": "^table-schema\\.[a-z0-9]+(?:-[a-z0-9]+)*$" },
+    "type": { "const": "table_schema" },
+    "name": { "type": "string", "minLength": 1 },
+    "summary": { "type": "string", "minLength": 1 },
+    "data_source_id": { "type": "string", "pattern": "^data-source\\.[a-z0-9]+(?:-[a-z0-9]+)*$" },
+    "columns": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "description"],
+        "properties": {
+          "name": { "type": "string", "minLength": 1 },
+          "description": { "type": "string", "minLength": 1 }
+        }
+      }
+    }
+  }
+}
