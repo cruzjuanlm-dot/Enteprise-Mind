@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { RefreshWhilePending } from "@/components/refresh";
-import { PendingForm } from "@/components/pending-form";
+import { ReviewDecision } from "@/components/review-decision";
 import { UnitPanel } from "@/components/unit-panel";
 import { canIngest, canReviewUnit } from "@/lib/authz";
 import { errorText, UNIT_LABEL } from "@/lib/present";
@@ -137,24 +137,7 @@ export default async function ReviewPage({
                         ? `Accept publishes this unit to ${projectName(selected.projectId) ?? "its project"} for project members. Reject keeps it out. Neither action runs the task.`
                         : "This unit is unassigned. Accept will not place it on a project page. Reject keeps it out. Neither action runs the task."}
                     </p>
-                    <div className="cluster">
-                      <PendingForm action="/api/review">
-                        <input type="hidden" name="unitId" value={selected.id} />
-                        <input type="hidden" name="action" value="accept" />
-                        <button className="btn" type="submit">
-                          <span className="idle-label">Accept</span>
-                          <span className="busy-label">Accepting</span>
-                        </button>
-                      </PendingForm>
-                      <PendingForm action="/api/review">
-                        <input type="hidden" name="unitId" value={selected.id} />
-                        <input type="hidden" name="action" value="reject" />
-                        <button className="btn danger" type="submit">
-                          <span className="idle-label">Reject</span>
-                          <span className="busy-label">Rejecting</span>
-                        </button>
-                      </PendingForm>
-                    </div>
+                    <ReviewDecision unitId={selected.id} />
                   </div>
                 ) : null
               }
