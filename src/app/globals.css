@@ -71,6 +71,7 @@ a:hover { color: var(--action-hover); }
   outline: 2px solid var(--focus);
   outline-offset: 2px;
   scroll-margin-top: 6rem;
+  scroll-margin-bottom: 1.5rem;
 }
 
 .skip {
@@ -214,6 +215,8 @@ a:hover { color: var(--action-hover); }
   gap: 1.5rem;
   align-items: start;
 }
+
+.detail > * { min-width: 0; max-width: 100%; }
 
 .label {
   margin-top: 1rem;
@@ -465,6 +468,13 @@ textarea { min-height: 16rem; resize: vertical; }
   }
 
   .detail { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media (min-width: 720px) and (max-width: 960px) {
+  .detail { grid-template-columns: minmax(0, 1fr) minmax(12.5rem, 16rem); }
+  .detail .label,
+  .detail .note,
+  .detail .actions { margin-top: 0.75rem; }
 }
 
 @media (max-width: 767px) {

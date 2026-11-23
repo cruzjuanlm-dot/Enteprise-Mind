@@ -17,8 +17,8 @@ export default async function ReviewPage({
   const { actor, repo } = await getContext();
   if (!actor) {
     return (
-      <main className="page">
-        <h1>Review queue</h1>
+      <main className="page" aria-labelledby="review-heading">
+        <h1 id="review-heading">Review queue</h1>
         <p className="lede">
           <Link href="/login">Sign in</Link> to see proposed units.
         </p>
@@ -46,11 +46,11 @@ export default async function ReviewPage({
   const projectName = (projectId: string | null) => projects.find((project) => project.id === projectId)?.name ?? null;
 
   return (
-    <main className="page">
+    <main className="page" aria-labelledby="review-heading">
       <RefreshWhilePending pending={pending} />
       <header className="page-head">
         <div>
-          <h1>Review queue</h1>
+          <h1 id="review-heading">Review queue</h1>
           <p className="lede">
             Proposed units stay out of shared context until you accept or reject them. Job status stays on{" "}
             <Link href="/jobs">Jobs</Link>. Ready for review is not the same as accepted.
@@ -132,12 +132,16 @@ export default async function ReviewPage({
               actions={
                 state === "proposed" && canReviewUnit(actor, selected) ? (
                   <div className="stack-tight">
-                    <p className="help">
+                    <p className="help" id={`review-effect-${selected.id}`}>
                       {selected.projectId
                         ? `Accept publishes this unit to ${projectName(selected.projectId) ?? "its project"} for project members. Reject keeps it out. Neither action runs the task.`
                         : "This unit is unassigned. Accept will not place it on a project page. Reject keeps it out. Neither action runs the task."}
                     </p>
-                    <ReviewDecision unitId={selected.id} />
+                    <ReviewDecision
+                      unitId={selected.id}
+                      unitTitle={selected.title}
+                      describedBy={`review-effect-${selected.id}`}
+                    />
                   </div>
                 ) : null
               }
