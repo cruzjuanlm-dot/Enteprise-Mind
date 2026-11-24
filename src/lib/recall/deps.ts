@@ -1,3 +1,4 @@
+import type { TokenStore } from "../tokens/store";
 import type { RecallStore } from "./store";
 
 export type RecallDeps = {
@@ -8,4 +9,5 @@ export type RecallDeps = {
   store: RecallStore;
   root: string;
   schedule: (work: () => Promise<void>) => void;
+  tokenStore?: TokenStore;
 };

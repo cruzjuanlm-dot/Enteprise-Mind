@@ -3,6 +3,8 @@
 
 const TERMS: { label: string; pattern: RegExp }[] = [
   { label: "Feld", pattern: /\bfeld\b/i },
+  { label: "Ringling", pattern: /\bringling\b/i },
+  { label: "Disney", pattern: /\bdisney\b/i },
   { label: "Ticketcel", pattern: /ticketcel/i },
   { label: "Cirque", pattern: /\bcirque\b/i },
 ];

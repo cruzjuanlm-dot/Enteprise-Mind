@@ -355,6 +355,13 @@ input, textarea, select {
   font: inherit;
 }
 
+input[type="checkbox"] {
+  width: 1rem;
+  height: 1rem;
+  min-height: 1rem;
+  padding: 0;
+}
+
 textarea { min-height: 16rem; resize: vertical; }
 
 .filters { display: flex; flex-wrap: wrap; gap: 0.5rem; }

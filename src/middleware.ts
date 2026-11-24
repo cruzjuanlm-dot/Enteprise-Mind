@@ -2,6 +2,10 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { isSupabaseConfigured } from "./lib/env";
 
+// Subscriber tokens (Authorization: Bearer flux_...) are checked in the route
+// handlers by authenticateBearer, not here. This middleware only refreshes a
+// Supabase session. FLUX_BOTS_AUTH_SECRET stays the internal bots credential.
+
 export async function middleware(request: NextRequest) {
   if (!isSupabaseConfigured()) return NextResponse.next();
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;

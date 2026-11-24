@@ -49,7 +49,9 @@ Copy `.env.example` and set values only in a local untracked env file or in the 
 | `RECALL_WORKSPACE_SECRET` | Required to accept Recall webhooks. `whsec_` prefix |
 | `RECALL_DOWNLOAD_HOSTS` | Required to download a transcript. Comma-separated HTTPS hosts |
 | `FLUX_SUBSCRIPTION_ACTIVE` | Required to send a bot. `true` or the request is rejected. Stripe is not connected |
-| `FLUX_BOTS_AUTH_SECRET` | Required on `POST /api/bots`. Callers send `Authorization: Bearer` |
+| `FLUX_BOTS_AUTH_SECRET` | Required on `POST /api/bots` for the internal caller. Callers send `Authorization: Bearer` |
+| `FLUX_TOKEN_PEPPER` | Required to create or verify a personal `flux_` token. Server only. HMAC key |
+| `FLUX_ADMIN_SECRET` | Required for `/admin`. Missing secret fails closed |
 | `GITHUB_TOKEN` or `FLUX_GITHUB_TOKEN` | Optional. Opens a draft pull request for meeting notes |
 | `LLM_ENABLED` | Leave empty or `false`. Meeting extraction does not call a model |
 
@@ -99,7 +101,7 @@ Apply the new migration only to a local database. Do not apply it to the hosted 
 
 ## Meeting bot
 
-`POST /api/bots` sends a Recall Create Bot request. The caller sends `Authorization: Bearer` with `FLUX_BOTS_AUTH_SECRET`. The server calls Recall with `Authorization: Token` and `RECALL_API_KEY`. A meeting more than 10 minutes away is scheduled with `join_at`. A sooner meeting is ad-hoc. An HTTP 507 waits about 30 seconds and tries once more. Transcription uses Recall's built-in `recallai_streaming` provider. A missing key returns 503. An inactive `FLUX_SUBSCRIPTION_ACTIVE` flag returns 403. Stripe is not called.
+`POST /api/bots` sends a Recall Create Bot request. An internal caller sends `Authorization: Bearer` with `FLUX_BOTS_AUTH_SECRET`. A subscriber token that starts with `flux_` is also accepted when it includes the `meetings:write` scope. The server calls Recall with `Authorization: Token` and `RECALL_API_KEY`. A meeting more than 10 minutes away is scheduled with `join_at`. A sooner meeting is ad-hoc. An HTTP 507 waits about 30 seconds and tries once more. Transcription uses Recall's built-in `recallai_streaming` provider. A missing key returns 503. An inactive `FLUX_SUBSCRIPTION_ACTIVE` flag returns 403. Stripe is not called.
 
 Recall posts lifecycle events to `/api/webhooks/recall`. The route checks the raw body with HMAC-SHA256 over `id.timestamp.rawBody`, accepts `webhook-*` and `svix-*` headers, and rejects timestamps outside five minutes. It returns 200 before it fetches anything. It does not poll bot status.
 
@@ -108,6 +110,42 @@ On `transcript.done` the job reads `GET /api/v1/transcript/{id}/` from the regio
 When `GITHUB_TOKEN` or `FLUX_GITHUB_TOKEN` is set (and `GITHUB_REPOSITORY` or a GitHub origin remote identifies the repo), those units open a draft pull request. Otherwise they are written to the working tree.
 
 Subscribe the webhook to `bot.joining_call`, `bot.in_waiting_room`, `bot.in_call_not_recording`, `bot.recording_permission_allowed`, `bot.recording_permission_denied`, `bot.in_call_recording`, `bot.call_ended`, `bot.done`, `bot.fatal`, `recording.done`, `transcript.done`, and `transcript.failed`. This repository does not register that webhook.
+
+## Admin, tokens, and MCP
+
+`/admin` lists the fictional Hearthline Instruments workspace, its subscribers, the subscription stub, meeting bots, and API token metadata. The page checks `FLUX_ADMIN_SECRET` on the server. If that variable is missing, the page lists nothing. A signed-in pilot user is not enough.
+
+`supabase/migrations/20261125120000_admin_tokens.sql` comes after the meetings migration. It adds workspaces, subscribers, admin roles, `api_tokens`, and `audit_log`. Apply it locally after `seed_meetings.sql`, then apply `supabase/seed_admin.sql`. Do not apply it to a hosted project, and do not apply it on top of `20261108120000_core.sql`.
+
+A personal token looks like `flux_` plus 32 bytes of base64url. Creating one returns that string once. The database stores `HMAC-SHA256(FLUX_TOKEN_PEPPER, token)` as hex, plus the prefix, the last four characters, scopes, expiry, revocation, and `last_used_at`. The hash is not readable by the `anon` or `authenticated` roles. Owners can select their own metadata.
+
+| Scope | Allows |
+| --- | --- |
+| `units:read` | `search_units`, `get_unit` |
+| `entities:read` | `list_entities` |
+| `action_items:read` | `list_action_items` |
+| `meetings:write` | `send_meeting_bot` and `POST /api/bots` |
+
+Signed-in Hearthline subscribers create, list, and revoke their own tokens at `/tokens`. `POST /api/tokens` returns the plaintext once. Revoked and expired tokens are rejected. A token without the required scope is rejected. Comparisons use a timing-safe equality check. Each accepted token has a per-token rate-limit stub.
+
+`FLUX_BOTS_AUTH_SECRET` is still the internal shared secret for `POST /api/bots`. It is not a subscriber token and it has no scopes. Subscriber tokens do not replace it. Both callers still need `FLUX_SUBSCRIPTION_ACTIVE`.
+
+`/api/mcp` is a remote MCP server over Streamable HTTP. It uses the same `flux_` tokens. Read tools do not write. `send_meeting_bot` requires `meetings:write`. Add Flux to an MCP client with a placeholder token:
+
+```json
+{
+  "mcpServers": {
+    "flux": {
+      "url": "https://YOUR_DEPLOYMENT/api/mcp",
+      "headers": {
+        "Authorization": "Bearer flux_YOUR_TOKEN"
+      }
+    }
+  }
+}
+```
+
+The client must accept both `application/json` and `text/event-stream`. Claude Desktop and Cursor use the same URL and bearer header for a remote MCP server. The token is created in Enterprise Mind. Do not paste a real token into git.
 
 ## Not in this slice
 

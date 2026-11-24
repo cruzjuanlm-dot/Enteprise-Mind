@@ -1,6 +1,7 @@
 import { after } from "next/server";
 import type { RecallDeps } from "./deps";
 import { recallStoreForEnv } from "./store";
+import { tokenStoreForEnv } from "../tokens/runtime";
 
 export function liveRecallDeps(): RecallDeps {
   return {
@@ -10,6 +11,7 @@ export function liveRecallDeps(): RecallDeps {
     now: () => Date.now(),
     store: recallStoreForEnv(process.env),
     root: process.cwd(),
+    tokenStore: tokenStoreForEnv(),
     schedule(work) {
       const run = () => {
         work().catch((error: unknown) => {

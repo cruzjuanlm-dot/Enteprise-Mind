@@ -2,6 +2,12 @@ export type DataMode = "memory" | "supabase";
 
 const PLACEHOLDER = /placeholder|your-project|example\.supabase|changeme|xxxxx/i;
 
+export function isConfiguredSecret(value: string | undefined | null): value is string {
+  const trimmed = value?.trim() ?? "";
+  if (!trimmed) return false;
+  return !PLACEHOLDER.test(trimmed);
+}
+
 export function isPublicSupabaseConfigured(env: NodeJS.ProcessEnv = process.env): boolean {
   const url = env.NEXT_PUBLIC_SUPABASE_URL?.trim() ?? "";
   const anon = env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim() ?? "";

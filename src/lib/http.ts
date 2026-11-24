@@ -16,6 +16,15 @@ export function wantsHtml(request: Request): boolean {
   return (request.headers.get("accept") ?? "").includes("text/html");
 }
 
+export function sameOriginUrl(request: Request, path: string): URL {
+  const host = request.headers.get("x-forwarded-host") ?? request.headers.get("host");
+  const proto = request.headers.get("x-forwarded-proto") ?? "http";
+  if (host && /^[A-Za-z0-9.-]+(?::\d+)?$/.test(host)) {
+    return new URL(path, `${proto}://${host}`);
+  }
+  return new URL(path, request.url);
+}
+
 export function jsonOrRedirect(
   request: Request,
   status: number,
