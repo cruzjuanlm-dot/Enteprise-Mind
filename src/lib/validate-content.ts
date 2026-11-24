@@ -16,6 +16,7 @@ const REF_PREFIX: Record<string, string> = {
   project_id: "project.",
   actor_role_id: "person-role.",
   requirement_id: "requirement.",
+  owner_role_id: "person-role.",
 };
 
 const TEXT_EXTENSIONS = new Set([".md", ".json", ".yaml", ".yml", ".sql", ".ts", ".tsx", ".css", ".mjs"]);
@@ -28,7 +29,9 @@ const DENYLIST_ROOTS = [
   "src",
   "README.md",
   "supabase/seed_entities.sql",
+  "supabase/seed_meetings.sql",
   "supabase/migrations/20261123120000_entities.sql",
+  "supabase/migrations/20261124120000_meetings.sql",
 ];
 
 type Edge = { type: string; from: string; to: string };

@@ -125,6 +125,32 @@
     "state": "accepted"
   },
   {
+    "id": "decision.ship-curve-sheet-without-audio",
+    "type": "decision",
+    "name": "Ship the curve sheet without stored audio",
+    "summary": "The Kilnwatch release ships the curve sheet. The standup audio is not stored.",
+    "project_id": "project.kilnwatch",
+    "state": "accepted"
+  },
+  {
+    "id": "action-item.publish-bench-checklist",
+    "type": "action_item",
+    "name": "Publish the bench checklist",
+    "summary": "Publish the bench checklist before the Kilnwatch teaching release.",
+    "project_id": "project.kilnwatch",
+    "state": "open",
+    "owner_role_id": "person-role.calibration-owner"
+  },
+  {
+    "id": "action-item.note-portal-handoff",
+    "type": "action_item",
+    "name": "Note the portal handoff",
+    "summary": "Note the Studio Portal handoff in the catalog.",
+    "project_id": "project.kilnwatch",
+    "state": "open",
+    "owner_role_id": "person-role.studio-lead"
+  },
+  {
     "id": "person-role.calibration-owner",
     "type": "person_role",
     "name": "Calibration owner",

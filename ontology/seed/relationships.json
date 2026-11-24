@@ -82,5 +82,35 @@
     "type": "staffs",
     "from": "person-role.calibration-owner",
     "to": "workflow.calibration-check"
+  },
+  {
+    "id": "rel.governs.ship-curve-sheet-without-audio",
+    "type": "governs",
+    "from": "decision.ship-curve-sheet-without-audio",
+    "to": "project.kilnwatch"
+  },
+  {
+    "id": "rel.assigns.publish-bench-checklist",
+    "type": "assigns",
+    "from": "action-item.publish-bench-checklist",
+    "to": "person-role.calibration-owner"
+  },
+  {
+    "id": "rel.assigns.note-portal-handoff",
+    "type": "assigns",
+    "from": "action-item.note-portal-handoff",
+    "to": "person-role.studio-lead"
+  },
+  {
+    "id": "rel.follows.publish-bench-checklist",
+    "type": "follows",
+    "from": "action-item.publish-bench-checklist",
+    "to": "decision.ship-curve-sheet-without-audio"
+  },
+  {
+    "id": "rel.follows.note-portal-handoff",
+    "type": "follows",
+    "from": "action-item.note-portal-handoff",
+    "to": "decision.ship-curve-sheet-without-audio"
   }
 ]

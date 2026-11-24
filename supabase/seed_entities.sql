@@ -1,4 +1,5 @@
 -- Local seed for the Flux entity tables. Not applied to a hosted project.
+-- Apply 20261124120000_meetings.sql before this file. It creates action_items.
 -- Ids match ontology/seed/entities.json and ontology/seed/relationships.json.
 -- commit_sha is null: git history is the version log until a sync pins a SHA.
 -- This file does not store transcripts or recordings.
@@ -108,6 +109,32 @@ insert into public.decisions (id, name, summary, project_id, state) values
     'Firing recordings are not stored.',
     'project.kilnwatch',
     'accepted'
+  ),
+  (
+    'decision.ship-curve-sheet-without-audio',
+    'Ship the curve sheet without stored audio',
+    'The Kilnwatch release ships the curve sheet. The standup audio is not stored.',
+    'project.kilnwatch',
+    'accepted'
+  )
+on conflict (id) do nothing;
+
+insert into public.action_items (id, name, summary, project_id, owner_role_id, state) values
+  (
+    'action-item.publish-bench-checklist',
+    'Publish the bench checklist',
+    'Publish the bench checklist before the Kilnwatch teaching release.',
+    'project.kilnwatch',
+    'person-role.calibration-owner',
+    'open'
+  ),
+  (
+    'action-item.note-portal-handoff',
+    'Note the portal handoff',
+    'Note the Studio Portal handoff in the catalog.',
+    'project.kilnwatch',
+    'person-role.studio-lead',
+    'open'
   )
 on conflict (id) do nothing;
 
@@ -125,7 +152,12 @@ insert into public.entity_relationships (id, relationship_type, from_type, from_
   ('rel.exercises.instructor-opens-curve', 'exercises', 'use_case', 'use-case.instructor-opens-curve', 'system', 'system.studio-portal'),
   ('rel.performed-by.instructor-opens-curve', 'performed_by', 'use_case', 'use-case.instructor-opens-curve', 'person_role', 'person-role.studio-lead'),
   ('rel.governs.no-recordings', 'governs', 'decision', 'decision.no-recordings', 'project', 'project.kilnwatch'),
-  ('rel.staffs.calibration-check', 'staffs', 'person_role', 'person-role.calibration-owner', 'workflow', 'workflow.calibration-check')
+  ('rel.staffs.calibration-check', 'staffs', 'person_role', 'person-role.calibration-owner', 'workflow', 'workflow.calibration-check'),
+  ('rel.governs.ship-curve-sheet-without-audio', 'governs', 'decision', 'decision.ship-curve-sheet-without-audio', 'project', 'project.kilnwatch'),
+  ('rel.assigns.publish-bench-checklist', 'assigns', 'action_item', 'action-item.publish-bench-checklist', 'person_role', 'person-role.calibration-owner'),
+  ('rel.assigns.note-portal-handoff', 'assigns', 'action_item', 'action-item.note-portal-handoff', 'person_role', 'person-role.studio-lead'),
+  ('rel.follows.publish-bench-checklist', 'follows', 'action_item', 'action-item.publish-bench-checklist', 'decision', 'decision.ship-curve-sheet-without-audio'),
+  ('rel.follows.note-portal-handoff', 'follows', 'action_item', 'action-item.note-portal-handoff', 'decision', 'decision.ship-curve-sheet-without-audio')
 on conflict (id) do nothing;
 
 insert into public.unit_refs (id, bucket, title, version, status, owner, repo_path, commit_sha, supersedes) values

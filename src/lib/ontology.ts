@@ -15,6 +15,7 @@ export const ENTITY_TYPES = [
   "milestone",
   "decision",
   "person_role",
+  "action_item",
 ] as const;
 
 export type EntityType = (typeof ENTITY_TYPES)[number];
@@ -35,6 +36,7 @@ export const ENTITY_TABLE: Record<EntityType, string> = {
   milestone: "milestones",
   decision: "decisions",
   person_role: "person_roles",
+  action_item: "action_items",
 };
 
 export const ID_PREFIX: Record<EntityType, string> = {
@@ -51,6 +53,7 @@ export const ID_PREFIX: Record<EntityType, string> = {
   milestone: "milestone",
   decision: "decision",
   person_role: "person-role",
+  action_item: "action-item",
 };
 
 export const ENTITY_LABEL: Record<EntityType, string> = {
@@ -67,6 +70,7 @@ export const ENTITY_LABEL: Record<EntityType, string> = {
   milestone: "Milestone",
   decision: "Decision",
   person_role: "Person role",
+  action_item: "Action item",
 };
 
 export type OntologyDeclaration = {

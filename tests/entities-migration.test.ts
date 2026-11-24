@@ -11,6 +11,10 @@ const entitiesSql = fs.readFileSync(
   path.join(root, "supabase/migrations/20261123120000_entities.sql"),
   "utf8",
 );
+const meetingsSql = fs.readFileSync(
+  path.join(root, "supabase/migrations/20261124120000_meetings.sql"),
+  "utf8",
+);
 const seedSql = fs.readFileSync(path.join(root, "supabase/seed_entities.sql"), "utf8");
 const coreSql = fs.readFileSync(path.join(root, "supabase/migrations/20261108120000_core.sql"), "utf8");
 
@@ -37,6 +41,7 @@ function errorText(error: unknown): string {
 test("entities migration and seed apply on a fresh local database", { timeout: 120_000 }, async () => {
   const db = new PGlite();
   await db.exec(entitiesSql);
+  await db.exec(meetingsSql);
   await db.exec(seedSql);
 
   const tables = await db.query<{ relname: string; relrowsecurity: boolean }>(
