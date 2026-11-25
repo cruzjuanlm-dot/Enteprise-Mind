@@ -13,7 +13,8 @@ export async function POST(request: Request) {
     if (action !== "accept" && action !== "reject") throw new AppError("invalid_action", 400);
     await repo.reviewUnit(actor, unitId, action);
     if (!wantsHtml(request)) return NextResponse.json({}, { status: 200 });
-    return redirectTo(request, `/review?result=${action}`);
+    const result = action === "accept" ? "accepted" : "rejected";
+    return redirectTo(request, `/review?result=${result}`);
   } catch (error) {
     return errorResponse(request, error, "/review");
   }

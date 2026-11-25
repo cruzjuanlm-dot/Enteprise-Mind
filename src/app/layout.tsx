@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { Geist, Geist_Mono } from "next/font/google";
 import { AppFrame } from "@/components/app-frame";
+import { LoadingRecords } from "@/components/loading-records";
+import { PendingNavigation } from "@/components/pending-navigation";
 import { roleLabel } from "@/lib/present";
 import { getContext } from "@/lib/session";
 import "./globals.css";
@@ -31,7 +34,9 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
     <html lang="en" className={`${sans.variable} ${mono.variable}`}>
       <body>
         <AppFrame showNav={Boolean(actor)} scope={scope} note={note}>
-          {children}
+          <Suspense fallback={<LoadingRecords />}>
+            <PendingNavigation>{children}</PendingNavigation>
+          </Suspense>
         </AppFrame>
       </body>
     </html>
