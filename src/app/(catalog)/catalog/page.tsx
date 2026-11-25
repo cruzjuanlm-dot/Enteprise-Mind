@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { entityNames, listComps, listUnits } from "@/lib/catalog";
-import { BUCKETS, BUCKET_BLURB, BUCKET_LABEL } from "@/lib/frontmatter";
+import { TYPE_BLURB, TYPE_CODES, TYPE_LABEL } from "@/lib/frontmatter";
 
 export const dynamic = "force-static";
 
@@ -19,33 +19,34 @@ export default function CatalogPage() {
         <p className="text-sm uppercase tracking-[0.16em] text-[var(--green)]">Hearthline Instruments</p>
         <h1 className="mt-2 text-4xl">Knowledge catalog</h1>
         <p className="mt-4 max-w-2xl text-[var(--muted)]">
-          Each unit is a Markdown file in git. The version log is the git history of that file. Entity rows are
-          listed on the entities page.
+          Each unit is one Markdown file under the project that produced it. Company scope is a tag in that file.
+          The version log is the git history. Entity rows are listed on the entities page.
         </p>
       </section>
-      {BUCKETS.map((bucket) => {
-        const items = units.filter((unit) => unit.bucket === bucket);
+      {TYPE_CODES.map((type) => {
+        const items = units.filter((unit) => unit.type === type);
         return (
-          <section key={bucket} className="grid gap-3">
+          <section key={type} className="grid gap-3">
             <div>
-              <h2 className="text-3xl">{BUCKET_LABEL[bucket]}</h2>
-              <p className="text-sm text-[var(--muted)]">{BUCKET_BLURB[bucket]}</p>
+              <h2 className="text-3xl">{TYPE_LABEL[type]}</h2>
+              <p className="text-sm text-[var(--muted)]">{TYPE_BLURB[type]}</p>
             </div>
             {items.length === 0 ? (
-              <p className="panel p-4 text-sm text-[var(--muted)]">No units in this bucket yet.</p>
+              <p className="panel p-4 text-sm text-[var(--muted)]">No units of this type yet.</p>
             ) : (
               items.map((unit) => (
                 <article key={unit.id} className="panel p-4">
                   <div className="flex flex-wrap items-center gap-2">
                     <h3 className="text-2xl">
-                      <Link href={`/catalog/${unit.bucket}/${unit.id}`}>{unit.title}</Link>
+                      <Link href={`/catalog/${unit.id}`}>{unit.title}</Link>
                     </h3>
                     <span className="chip" data-status={unit.status}>
                       {unit.status}
                     </span>
+                    <span className="chip">{unit.scope}</span>
                   </div>
                   <p className="mt-2 text-sm text-[var(--muted)]">
-                    Version {unit.version} · {names.get(unit.owner) ?? unit.owner}
+                    {unit.id} · Version {unit.version} · {names.get(unit.owner) ?? unit.owner}
                   </p>
                 </article>
               ))
@@ -67,7 +68,7 @@ export default function CatalogPage() {
                 const unit = units.find((item) => item.id === unitId);
                 return (
                   <li key={unitId}>
-                    {unit ? <Link href={`/catalog/${unit.bucket}/${unit.id}`}>{unit.title}</Link> : unitId}
+                    {unit ? <Link href={`/catalog/${unit.id}`}>{unit.title}</Link> : unitId}
                   </li>
                 );
               })}

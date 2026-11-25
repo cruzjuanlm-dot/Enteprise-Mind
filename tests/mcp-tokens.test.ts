@@ -146,6 +146,7 @@ function rpc(
 
 function env(): NodeJS.ProcessEnv {
   return {
+    NODE_ENV: "test",
     FLUX_TOKEN_PEPPER: FIXTURE_PEPPER,
     FLUX_SUBSCRIPTION_ACTIVE: "true",
     RECALL_API_KEY: "recall-test-key",

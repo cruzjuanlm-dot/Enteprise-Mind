@@ -15,7 +15,7 @@ test("admin gate fails closed without the secret", async () => {
     return original();
   };
   const view = await buildAdminView({
-    env: {},
+    env: { NODE_ENV: "test" },
     authorizationHeader: null,
     adminCookie: null,
     store,
@@ -26,7 +26,7 @@ test("admin gate fails closed without the secret", async () => {
   assert.equal(reads, 0);
 
   const response = await handleAdminSession(json({ secret: "anything" }), {
-    env: {},
+    env: { NODE_ENV: "test" },
     store,
     now: () => Date.parse("2026-11-24T12:00:00.000Z"),
   });
@@ -37,7 +37,7 @@ test("admin gate fails closed without the secret", async () => {
 
 test("admin gate requires the secret and an admin role", async () => {
   const now = () => Date.parse("2026-11-24T12:00:00.000Z");
-  const env = { FLUX_ADMIN_SECRET: "admin-test-secret", FLUX_SUBSCRIPTION_ACTIVE: "true" };
+  const env = { NODE_ENV: "test" as const, FLUX_ADMIN_SECRET: "admin-test-secret", FLUX_SUBSCRIPTION_ACTIVE: "true" };
   const empty = new MemoryTokenStore({ seed: false });
   const missingRole = await handleAdminSession(json({ secret: "admin-test-secret" }), { env, store: empty, now });
   assert.equal(missingRole.status, 403);

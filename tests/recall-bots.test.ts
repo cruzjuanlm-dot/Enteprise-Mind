@@ -84,8 +84,8 @@ test("artifact rows keep a hash and pointers, not transcript text", () => {
     speakers: ["Catalog editor"],
     recallTranscriptId: "tr_hearth",
     recallRecordingId: "rec_hearth",
-    conversationUnitPath: "units/conversations/example/UNIT.md",
-    decisionUnitPath: "units/decisions/example/UNIT.md",
+    conversationUnitPath: "projects/kilnwatch/units/kilnwatch-mtgexample1-OQ-001.md",
+    decisionUnitPath: "projects/kilnwatch/units/kilnwatch-mtgexample1-DEC-001.md",
   };
   assert.deepEqual(Object.keys(artifactInsert(artifact)).sort(), [
     "bot_id",
@@ -104,6 +104,7 @@ test("artifact rows keep a hash and pointers, not transcript text", () => {
 
 function env(): NodeJS.ProcessEnv {
   return {
+    NODE_ENV: "test",
     FLUX_BOTS_AUTH_SECRET: "bots-test-secret",
     FLUX_SUBSCRIPTION_ACTIVE: "true",
     RECALL_API_KEY: "recall-test-key",

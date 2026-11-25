@@ -3,8 +3,9 @@ import fs from "node:fs";
 import path from "node:path";
 import { parse } from "yaml";
 import { deniedTerms } from "./denylist";
-import { BUCKETS, parseFrontmatter } from "./frontmatter";
+import { parseFrontmatter, parseUnitId, projectSlug } from "./frontmatter";
 import { ENTITY_TYPES, entityTypeFromId, ID_PREFIX, type EntityType } from "./ontology";
+import { renderRoutingIndex, type UnitIndexEntry } from "./unit-index";
 
 export type Issue = { file: string; message: string };
 
@@ -22,12 +23,14 @@ const REF_PREFIX: Record<string, string> = {
 const TEXT_EXTENSIONS = new Set([".md", ".json", ".yaml", ".yml", ".sql", ".ts", ".tsx", ".css", ".mjs"]);
 const DENYLIST_SKIP = new Set([path.normalize("src/lib/denylist.ts")]);
 const DENYLIST_ROOTS = [
-  "units",
+  "projects",
   "comps",
   "ontology",
-  "schema",
+  "core",
+  "_control",
   "src",
   "README.md",
+  "INDEX.md",
   "supabase/seed_entities.sql",
   "supabase/seed_meetings.sql",
   "supabase/migrations/20261123120000_entities.sql",
@@ -41,8 +44,8 @@ type Edge = { type: string; from: string; to: string };
 export function validateRepository(root: string): Issue[] {
   const issues: Issue[] = [];
   const ajv = new Ajv({ allErrors: true, strict: false });
-  const unitSchema = readJson(root, "schema/unit.schema.json", issues);
-  const compSchema = readJson(root, "schema/comp.schema.json", issues);
+  const unitSchema = readJson(root, "ontology/schemas/unit.schema.json", issues);
+  const compSchema = readJson(root, "ontology/schemas/comp.schema.json", issues);
   const entities = readJson(root, "ontology/seed/entities.json", issues);
   const relationships = readJson(root, "ontology/seed/relationships.json", issues);
   const catalog = readYaml(root, "ontology/relationships.yaml", issues);
@@ -139,14 +142,36 @@ export function validateRepository(root: string): Issue[] {
 
   const unitIds = new Set<string>();
   const parsedUnits: { file: string; data: Record<string, unknown> }[] = [];
+  const indexEntries: UnitIndexEntry[] = [];
   const unitFiles = walkUnits(root, issues);
   for (const file of unitFiles) {
+    const markdown = fs.readFileSync(path.join(root, file), "utf8");
+    if (frontmatterCount(markdown) !== 1) {
+      issues.push({ file, message: "A file must contain one unit." });
+    }
     const data = readUnitData(root, file, validateUnit, issues);
     if (!data) continue;
     const id = typeof data.id === "string" ? data.id : "";
-    const bucket = typeof data.bucket === "string" ? data.bucket : "";
-    const expected = path.posix.join("units", bucket, id, "UNIT.md");
-    if (id && bucket && file !== expected) issues.push({ file, message: `Path must be ${expected}.` });
+    const parsedId = id ? parseUnitId(id) : null;
+    if (id && !parsedId) issues.push({ file, message: "Unit id must end with a type code and a three-digit sequence." });
+    if (id && file !== `projects/${path.posix.basename(path.posix.dirname(path.posix.dirname(file)))}/units/${id}.md`) {
+      issues.push({ file, message: `Filename must be ${id}.md.` });
+    }
+    if (parsedId && data.type !== parsedId.type) {
+      issues.push({ file, message: `Type ${String(data.type)} must match the type code in the id.` });
+    }
+    if (typeof data.project === "string" && parsedId) {
+      try {
+        const slug = projectSlug(data.project);
+        const expected = `projects/${slug}/units/${id}.md`;
+        if (file !== expected) issues.push({ file, message: `Path must stay ${expected}.` });
+        if (slug !== parsedId.projectSlug) {
+          issues.push({ file, message: "Project slug in the id must match the project field." });
+        }
+      } catch (error) {
+        issues.push({ file, message: error instanceof Error ? error.message : "Invalid project id." });
+      }
+    }
     if (id) {
       if (unitIds.has(id)) issues.push({ file, message: `Duplicate unit id ${id}.` });
       unitIds.add(id);
@@ -162,11 +187,21 @@ export function validateRepository(root: string): Issue[] {
       issues.push({ file, message: `Unknown owner ${data.owner}.` });
     }
     parsedUnits.push({ file, data });
-  }
-
-  for (const bucket of BUCKETS) {
-    if (!unitFiles.some((file) => file.startsWith(`units/${bucket}/`))) {
-      issues.push({ file: `units/${bucket}`, message: `Bucket ${bucket} has no units.` });
+    if (parsedId && typeof data.title === "string" && typeof data.project === "string" && typeof data.source_id === "string") {
+      indexEntries.push({
+        id,
+        title: data.title,
+        type: parsedId.type,
+        scope: data.scope === "company" ? "company" : "project",
+        project: data.project,
+        sourceId: data.source_id,
+        version: Number(data.version),
+        status: String(data.status),
+        owner: String(data.owner),
+        entities: Array.isArray(data.entities) ? data.entities.filter((item): item is string => typeof item === "string") : [],
+        supersedes: typeof data.supersedes === "string" ? data.supersedes : null,
+        path: file,
+      });
     }
   }
 
@@ -215,6 +250,7 @@ export function validateRepository(root: string): Issue[] {
 
   assertSeedSql(root, entityIds, relationshipIds, unitIds, issues);
   assertMigration(root, issues);
+  assertRoutingIndex(root, indexEntries, issues);
   scanDenylist(root, issues);
   return issues.sort((left, right) => left.file.localeCompare(right.file) || left.message.localeCompare(right.message));
 }
@@ -288,9 +324,38 @@ function assertMigration(root: string, issues: Issue[]) {
   if (!/create table public\.unit_refs/i.test(sql) || !/\brepo_path\b/.test(sql) || !/\bcommit_sha\b/.test(sql)) {
     issues.push({ file: relative, message: "unit_refs must store repo_path and commit_sha." });
   }
+  if (!/create table public\.entity_projects/i.test(sql)) {
+    issues.push({ file: relative, message: "Catalog projects must use public.entity_projects." });
+  }
+  if (/create table public\.projects\b/i.test(sql)) {
+    issues.push({ file: relative, message: "The entities migration must not create public.projects." });
+  }
+  for (const column of ["unit_type", "scope", "project_id", "source_id"]) {
+    if (!new RegExp(`\\b${column}\\b`).test(sql)) {
+      issues.push({ file: relative, message: `unit_refs must store ${column}.` });
+    }
+  }
   if (/create table public\.transcripts/i.test(sql)) {
     issues.push({ file: relative, message: "The entities migration must not store transcripts." });
   }
+}
+
+function assertRoutingIndex(root: string, units: UnitIndexEntry[], issues: Issue[]) {
+  const relative = "INDEX.md";
+  const absolute = path.join(root, relative);
+  if (!fs.existsSync(absolute)) {
+    issues.push({ file: relative, message: "Missing INDEX.md. Run npm run build-unit-index." });
+    return;
+  }
+  const actual = fs.readFileSync(absolute, "utf8");
+  const expected = renderRoutingIndex(units.sort((left, right) => left.id.localeCompare(right.id)));
+  if (actual !== expected) {
+    issues.push({ file: relative, message: "INDEX.md is stale. Run npm run build-unit-index." });
+  }
+}
+
+function frontmatterCount(markdown: string): number {
+  return markdown.match(/^---\r?\n[\s\S]*?\r?\n---/gm)?.length ?? 0;
 }
 
 function scanDenylist(root: string, issues: Issue[]) {
@@ -321,27 +386,25 @@ function walkTextFiles(directory: string, root: string): string[] {
 }
 
 function walkUnits(root: string, issues: Issue[]): string[] {
-  const unitsRoot = path.join(root, "units");
-  if (!fs.existsSync(unitsRoot)) {
-    issues.push({ file: "units", message: "Missing units directory." });
+  const projectsRoot = path.join(root, "projects");
+  if (!fs.existsSync(projectsRoot)) {
+    issues.push({ file: "projects", message: "Missing projects directory." });
     return [];
   }
   const files: string[] = [];
-  for (const entry of fs.readdirSync(unitsRoot, { withFileTypes: true })) {
+  for (const entry of fs.readdirSync(projectsRoot, { withFileTypes: true })) {
     if (!entry.isDirectory()) continue;
-    if (!BUCKETS.includes(entry.name as (typeof BUCKETS)[number])) {
-      issues.push({ file: `units/${entry.name}`, message: `Unknown bucket ${entry.name}.` });
+    if (entry.name === "_template") continue;
+    const unitsDir = path.join(projectsRoot, entry.name, "units");
+    const relativeDir = `projects/${entry.name}/units`;
+    if (!fs.existsSync(unitsDir)) {
+      issues.push({ file: relativeDir, message: "Missing units directory." });
       continue;
     }
-    const bucketDir = path.join(unitsRoot, entry.name);
-    for (const unitId of fs.readdirSync(bucketDir, { withFileTypes: true })) {
-      if (!unitId.isDirectory()) {
-        issues.push({ file: `units/${entry.name}/${unitId.name}`, message: "Unit folders must contain UNIT.md." });
-        continue;
-      }
-      const relative = path.posix.join("units", entry.name, unitId.name, "UNIT.md");
-      if (!fs.existsSync(path.join(root, relative))) {
-        issues.push({ file: `units/${entry.name}/${unitId.name}`, message: "Missing UNIT.md." });
+    for (const unitFile of fs.readdirSync(unitsDir, { withFileTypes: true })) {
+      const relative = `${relativeDir}/${unitFile.name}`;
+      if (!unitFile.isFile() || !unitFile.name.endsWith(".md")) {
+        issues.push({ file: relative, message: "A unit file must be one Markdown file." });
         continue;
       }
       files.push(relative);

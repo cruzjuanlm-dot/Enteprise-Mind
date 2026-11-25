@@ -45,16 +45,37 @@ export function uniqueSpeakers(segments: TranscriptSegment[]): string[] {
  * Rule-based extraction only. This function does not call a model.
  * Titles are kept. Source excerpts are dropped so the transcript is not copied forward.
  */
-export function extractMeetingNotes(text: string): { actions: MeetingNote[]; decisions: MeetingNote[] } {
+export type UnresolvedClaim = {
+  kind: string;
+  title: string;
+};
+
+export function extractMeetingNotes(text: string): {
+  actions: MeetingNote[];
+  decisions: MeetingNote[];
+  unresolved: UnresolvedClaim[];
+} {
   const drafts = extractDeterministic(text);
   const actions: MeetingNote[] = [];
   const decisions: MeetingNote[] = [];
+  const unresolved: UnresolvedClaim[] = [];
   for (const draft of drafts) {
     const note = { title: draft.title, ownerName: draft.ownerName };
     if (draft.unitType === "pending_task") actions.push(note);
-    if (draft.unitType === "design_decision") decisions.push(note);
+    else if (draft.unitType === "design_decision") decisions.push(note);
+    else unresolved.push({ kind: draft.unitType, title: draft.title });
   }
-  return { actions, decisions };
+  return { actions, decisions, unresolved };
+}
+
+/** Segments with no labeled claim. The text is not returned. */
+export function unlabeledClaims(segments: TranscriptSegment[]): UnresolvedClaim[] {
+  const claims: UnresolvedClaim[] = [];
+  for (const segment of segments) {
+    if (extractDeterministic(segment.text).length > 0) continue;
+    claims.push({ kind: "unlabeled", title: "discarded" });
+  }
+  return claims;
 }
 
 export function roleIdForOwner(ownerName: string | null): string | null {

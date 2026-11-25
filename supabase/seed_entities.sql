@@ -18,7 +18,7 @@ insert into public.systems (id, name, summary, kind, status) values
   ('system.glaze-notebook', 'Glaze Notebook', 'Proposed notebook for glaze recipes. Not connected to Kilnwatch curves.', 'product', 'proposed')
 on conflict (id) do nothing;
 
-insert into public.projects (id, name, summary, status) values
+insert into public.entity_projects (id, name, summary, status) values
   ('project.kilnwatch', 'Kilnwatch teaching release', 'Teaching release of the Kilnwatch instrument software.', 'active')
 on conflict (id) do nothing;
 
@@ -160,33 +160,33 @@ insert into public.entity_relationships (id, relationship_type, from_type, from_
   ('rel.follows.note-portal-handoff', 'follows', 'action_item', 'action-item.note-portal-handoff', 'decision', 'decision.ship-curve-sheet-without-audio')
 on conflict (id) do nothing;
 
-insert into public.unit_refs (id, bucket, title, version, status, owner, repo_path, commit_sha, supersedes) values
-  ('kiln-ledger-split', 'architecture', 'Kiln Ledger and Studio Portal stay separate', 1, 'accepted', 'person-role.catalog-editor', 'units/architecture/kiln-ledger-split/UNIT.md', null, null),
-  ('studio-firing-sheet', 'design', 'Studio firing sheet', 1, 'accepted', 'person-role.catalog-editor', 'units/design/studio-firing-sheet/UNIT.md', null, null),
-  ('bench-handoff-notes', 'conversations', 'Bench handoff for the calibration check', 1, 'accepted', 'person-role.studio-lead', 'units/conversations/bench-handoff-notes/UNIT.md', null, null),
-  ('firing-recordings-stay-out', 'decisions', 'Firing recordings stay out of the database', 1, 'accepted', 'person-role.catalog-editor', 'units/decisions/firing-recordings-stay-out/UNIT.md', null, null),
-  ('calibration-check', 'procedures', 'Calibration check procedure', 1, 'accepted', 'person-role.calibration-owner', 'units/procedures/calibration-check/UNIT.md', null, null)
+insert into public.unit_refs (id, unit_type, scope, project_id, source_id, title, version, status, owner, repo_path, commit_sha, supersedes) values
+  ('kilnwatch-seed-ARC-001', 'ARC', 'project', 'project.kilnwatch', 'source.seed', 'Kiln Ledger and Studio Portal stay separate', 1, 'accepted', 'person-role.catalog-editor', 'projects/kilnwatch/units/kilnwatch-seed-ARC-001.md', null, null),
+  ('kilnwatch-seed-DS-001', 'DS', 'project', 'project.kilnwatch', 'source.seed', 'Studio firing sheet', 1, 'accepted', 'person-role.catalog-editor', 'projects/kilnwatch/units/kilnwatch-seed-DS-001.md', null, null),
+  ('kilnwatch-handoff-BR-001', 'BR', 'project', 'project.kilnwatch', 'source.handoff', 'Bench handoff for the calibration check', 1, 'accepted', 'person-role.studio-lead', 'projects/kilnwatch/units/kilnwatch-handoff-BR-001.md', null, null),
+  ('kilnwatch-seed-DEC-001', 'DEC', 'project', 'project.kilnwatch', 'source.seed', 'Firing recordings stay out of the database', 1, 'accepted', 'person-role.catalog-editor', 'projects/kilnwatch/units/kilnwatch-seed-DEC-001.md', null, null),
+  ('kilnwatch-seed-WF-001', 'WF', 'project', 'project.kilnwatch', 'source.seed', 'Calibration check procedure', 1, 'accepted', 'person-role.calibration-owner', 'projects/kilnwatch/units/kilnwatch-seed-WF-001.md', null, null)
 on conflict (id) do nothing;
 
 insert into public.unit_ref_entities (unit_id, entity_id) values
-  ('kiln-ledger-split', 'system.kiln-ledger'),
-  ('kiln-ledger-split', 'system.studio-portal'),
-  ('kiln-ledger-split', 'system.glaze-notebook'),
-  ('kiln-ledger-split', 'integration.ledger-to-portal'),
-  ('studio-firing-sheet', 'system.studio-portal'),
-  ('studio-firing-sheet', 'use-case.instructor-opens-curve'),
-  ('studio-firing-sheet', 'table-schema.firing-curve'),
-  ('bench-handoff-notes', 'workflow.calibration-check'),
-  ('bench-handoff-notes', 'person-role.calibration-owner'),
-  ('bench-handoff-notes', 'person-role.studio-lead'),
-  ('bench-handoff-notes', 'environment.kiln-ledger-bench'),
-  ('firing-recordings-stay-out', 'decision.no-recordings'),
-  ('firing-recordings-stay-out', 'requirement.studio-sees-own-curve'),
-  ('firing-recordings-stay-out', 'data-source.firing-curves'),
-  ('calibration-check', 'workflow.calibration-check'),
-  ('calibration-check', 'environment.kiln-ledger-bench'),
-  ('calibration-check', 'person-role.calibration-owner'),
-  ('calibration-check', 'system.kiln-ledger')
+  ('kilnwatch-seed-ARC-001', 'system.kiln-ledger'),
+  ('kilnwatch-seed-ARC-001', 'system.studio-portal'),
+  ('kilnwatch-seed-ARC-001', 'system.glaze-notebook'),
+  ('kilnwatch-seed-ARC-001', 'integration.ledger-to-portal'),
+  ('kilnwatch-seed-DS-001', 'system.studio-portal'),
+  ('kilnwatch-seed-DS-001', 'use-case.instructor-opens-curve'),
+  ('kilnwatch-seed-DS-001', 'table-schema.firing-curve'),
+  ('kilnwatch-handoff-BR-001', 'workflow.calibration-check'),
+  ('kilnwatch-handoff-BR-001', 'person-role.calibration-owner'),
+  ('kilnwatch-handoff-BR-001', 'person-role.studio-lead'),
+  ('kilnwatch-handoff-BR-001', 'environment.kiln-ledger-bench'),
+  ('kilnwatch-seed-DEC-001', 'decision.no-recordings'),
+  ('kilnwatch-seed-DEC-001', 'requirement.studio-sees-own-curve'),
+  ('kilnwatch-seed-DEC-001', 'data-source.firing-curves'),
+  ('kilnwatch-seed-WF-001', 'workflow.calibration-check'),
+  ('kilnwatch-seed-WF-001', 'environment.kiln-ledger-bench'),
+  ('kilnwatch-seed-WF-001', 'person-role.calibration-owner'),
+  ('kilnwatch-seed-WF-001', 'system.kiln-ledger')
 on conflict (unit_id, entity_id) do nothing;
 
 commit;

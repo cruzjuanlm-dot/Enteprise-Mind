@@ -85,16 +85,23 @@ test("transcript.done extracts two actions and one decision without keeping the 
   assert.equal(persisted.toLowerCase().includes("feld"), false);
   const conversation = fs.readFileSync(path.join(catalog, snapshot.artifacts[0]?.conversationUnitPath ?? ""), "utf8");
   const decision = fs.readFileSync(path.join(catalog, snapshot.artifacts[0]?.decisionUnitPath ?? ""), "utf8");
+  const triage = fs.readFileSync(path.join(catalog, "_control/triage.md"), "utf8");
   assert.equal(conversation.includes(VERBATIM), false);
   assert.equal(decision.includes(VERBATIM), false);
+  assert.equal(triage.includes(VERBATIM), false);
   assert.match(conversation, /## Summary/);
+  assert.match(conversation, /type: OQ/);
   assert.match(decision, /## Decision/);
+  assert.match(decision, /type: DEC/);
+  assert.match(snapshot.artifacts[0]?.conversationUnitPath ?? "", /^projects\/kilnwatch\/units\/kilnwatch-mtg[0-9a-f]{8}-OQ-001\.md$/);
+  assert.match(triage, /unlabeled discarded/);
   assert.deepEqual(validateRepository(catalog), []);
 
-  const beforeUnits = fs.readdirSync(path.join(catalog, "units/conversations"));
+  const unitsDir = path.join(catalog, "projects/kilnwatch/units");
+  const beforeUnits = fs.readdirSync(unitsDir);
   await processRecallEvent(transcriptEvent(), deps(store, catalog, recallFetch(urls), () => undefined));
   assert.equal(snapshot.actionItems.length, 2);
-  assert.deepEqual(fs.readdirSync(path.join(catalog, "units/conversations")), beforeUnits);
+  assert.deepEqual(fs.readdirSync(unitsDir), beforeUnits);
   assert.equal((await store.snapshot()).artifacts.length, 1);
 });
 
@@ -107,7 +114,8 @@ test("a denied transcript writes nothing and an enabled model flag makes no netw
   assert.equal(snapshot.includes("Feld"), false);
   assert.equal((await store.snapshot()).artifacts.length, 0);
   assert.equal((await store.snapshot()).actionItems.length, 0);
-  assert.equal(fs.readdirSync(path.join(catalog, "units/conversations")).length, 1);
+  assert.equal(fs.readdirSync(path.join(catalog, "projects/kilnwatch/units")).length, 5);
+  assert.equal(fs.readFileSync(path.join(catalog, "_control/triage.md"), "utf8").includes("Feld"), false);
 
   const blocked = new MemoryRecallStore();
   await assert.rejects(
@@ -245,10 +253,11 @@ function deps(
   catalog: string,
   fetchImpl: typeof fetch,
   schedule: (work: () => Promise<void>) => void,
-  extra: NodeJS.ProcessEnv = {},
+  extra: Partial<NodeJS.ProcessEnv> = {},
 ): RecallDeps {
   return {
     env: {
+      NODE_ENV: "test",
       RECALL_WORKSPACE_SECRET: secret,
       RECALL_API_KEY: "recall-test-key",
       RECALL_REGION: "us-east-1",
@@ -297,9 +306,10 @@ function deniedFetch(urls: string[]): typeof fetch {
 
 function copyCatalog(): string {
   const dest = fs.mkdtempSync(path.join(os.tmpdir(), "flux-recall-"));
-  for (const relative of ["ontology", "schema", "units", "comps"]) {
+  for (const relative of ["ontology", "projects", "comps", "_control"]) {
     fs.cpSync(path.join(root, relative), path.join(dest, relative), { recursive: true });
   }
+  fs.copyFileSync(path.join(root, "INDEX.md"), path.join(dest, "INDEX.md"));
   fs.mkdirSync(path.join(dest, "supabase/migrations"), { recursive: true });
   fs.copyFileSync(path.join(root, "supabase/seed_entities.sql"), path.join(dest, "supabase/seed_entities.sql"));
   fs.copyFileSync(

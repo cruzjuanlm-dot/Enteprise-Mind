@@ -1,7 +1,10 @@
 ---
-id: firing-recordings-stay-out
+id: kilnwatch-seed-DEC-001
 title: Firing recordings stay out of the database
-bucket: decisions
+type: DEC
+scope: project
+project: project.kilnwatch
+source_id: source.seed
 version: 1
 status: accepted
 owner: person-role.catalog-editor

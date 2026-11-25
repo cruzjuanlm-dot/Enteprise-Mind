@@ -20,17 +20,36 @@ export function searchUnits(query: string, root: string) {
   const needle = query.trim().toLowerCase();
   return collectUnits(root)
     .filter((unit) => unit.title.toLowerCase().includes(needle) || unit.id.toLowerCase().includes(needle))
-    .map((unit) => ({ id: unit.id, title: unit.title, bucket: unit.bucket, path: unit.path }));
+    .map((unit) => ({
+      id: unit.id,
+      title: unit.title,
+      type: unit.type,
+      scope: unit.scope,
+      project: unit.project,
+      path: unit.path,
+    }));
 }
 
-export function readUnit(id: string, root: string): { id: string; title: string; bucket: string; path: string; body: string } | null {
+export function readUnit(
+  id: string,
+  root: string,
+): { id: string; title: string; type: string; scope: string; project: string; path: string; body: string } | null {
   const entry = collectUnits(root).find((unit) => unit.id === id);
   if (!entry) return null;
-  const unitsRoot = path.resolve(root, "units");
+  if (entry.path.includes("..") || !entry.path.startsWith("projects/") || !entry.path.endsWith(".md")) return null;
+  const projectsRoot = path.resolve(root, "projects");
   const full = path.resolve(root, entry.path);
-  if (full !== unitsRoot && !full.startsWith(`${unitsRoot}${path.sep}`)) return null;
+  if (full !== projectsRoot && !full.startsWith(`${projectsRoot}${path.sep}`)) return null;
   const parsed = parseFrontmatter(fs.readFileSync(full, "utf8"));
-  return { id: entry.id, title: entry.title, bucket: entry.bucket, path: entry.path, body: parsed.body.trim() };
+  return {
+    id: entry.id,
+    title: entry.title,
+    type: entry.type,
+    scope: entry.scope,
+    project: entry.project,
+    path: entry.path,
+    body: parsed.body.trim(),
+  };
 }
 
 export async function listCatalogEntities(env: NodeJS.ProcessEnv, root: string) {

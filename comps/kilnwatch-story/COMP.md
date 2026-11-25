@@ -6,11 +6,11 @@ version: 1
 status: accepted
 owner: person-role.catalog-editor
 units:
-  - kiln-ledger-split
-  - studio-firing-sheet
-  - bench-handoff-notes
-  - firing-recordings-stay-out
-  - calibration-check
+  - kilnwatch-seed-ARC-001
+  - kilnwatch-seed-DS-001
+  - kilnwatch-handoff-BR-001
+  - kilnwatch-seed-DEC-001
+  - kilnwatch-seed-WF-001
 entities:
   - system.kiln-ledger
   - system.studio-portal

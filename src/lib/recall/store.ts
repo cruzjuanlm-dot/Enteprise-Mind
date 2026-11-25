@@ -62,7 +62,10 @@ export type RelationshipRecord = {
 
 export type UnitRefRecord = {
   id: string;
-  bucket: string;
+  unitType: string;
+  scope: "project" | "company";
+  projectId: string;
+  sourceId: string;
   title: string;
   repoPath: string;
   owner: string;
@@ -305,7 +308,10 @@ export function supabaseRecallStore(writer: SupabaseWriter = serviceWriter()): R
     async saveUnitRef(ref) {
       await writer.insert("unit_refs", {
         id: ref.id,
-        bucket: ref.bucket,
+        unit_type: ref.unitType,
+        scope: ref.scope,
+        project_id: ref.projectId,
+        source_id: ref.sourceId,
         title: ref.title,
         version: 1,
         status: "draft",
