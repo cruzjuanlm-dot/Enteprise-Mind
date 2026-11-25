@@ -34,6 +34,7 @@ export default async function HomePage() {
           </Link>
         </header>
         <FixturePreview scope={scope} projectName={fixtureProject?.name ?? null} lead={lead} rest={rest} />
+        <CatalogSection />
       </main>
     );
   }
@@ -158,7 +159,30 @@ export default async function HomePage() {
           stored record until you submit it.
         </p>
       ) : null}
+      <CatalogSection />
     </main>
+  );
+}
+
+function CatalogSection() {
+  return (
+    <section className="stack" aria-labelledby="catalog-heading">
+      <div>
+        <h2 id="catalog-heading">Knowledge catalog</h2>
+        <p className="measure">
+          Governed Hearthline units live in the repository. Entity rows are read from Supabase when it is configured,
+          and from the committed seed otherwise.
+        </p>
+      </div>
+      <div className="cluster">
+        <Link className="btn" href="/catalog">
+          Browse units
+        </Link>
+        <Link className="btn secondary" href="/entities">
+          Browse entities
+        </Link>
+      </div>
+    </section>
   );
 }
 

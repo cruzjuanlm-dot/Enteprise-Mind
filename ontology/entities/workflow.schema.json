@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://enterprise-mind.local/ontology/workflow.schema.json",
+  "title": "Workflow",
+  "description": "A repeatable way of working on a project.",
+  "type": "object",
+  "additionalProperties": false,
+  "x-source-of-truth": "both",
+  "x-mirror-direction": "git_to_db",
+  "x-mirror-note": "The procedure is governed in git. A later job copies the workflow row from that description. Runtime status is not written back.",
+  "required": ["id", "type", "name", "summary", "project_id"],
+  "properties": {
+    "id": { "type": "string", "pattern": "^workflow\\.[a-z0-9]+(?:-[a-z0-9]+)*$" },
+    "type": { "const": "workflow" },
+    "name": { "type": "string", "minLength": 1 },
+    "summary": { "type": "string", "minLength": 1 },
+    "project_id": { "type": "string", "pattern": "^project\\.[a-z0-9]+(?:-[a-z0-9]+)*$" }
+  }
+}

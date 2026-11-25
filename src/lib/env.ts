@@ -2,6 +2,19 @@ export type DataMode = "memory" | "supabase";
 
 const PLACEHOLDER = /placeholder|your-project|example\.supabase|changeme|xxxxx/i;
 
+export function isPublicSupabaseConfigured(env: NodeJS.ProcessEnv = process.env): boolean {
+  const url = env.NEXT_PUBLIC_SUPABASE_URL?.trim() ?? "";
+  const anon = env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim() ?? "";
+  if (!url || !anon) return false;
+  if (PLACEHOLDER.test(url) || PLACEHOLDER.test(anon)) return false;
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === "https:" || parsed.protocol === "http:";
+  } catch {
+    return false;
+  }
+}
+
 export function isSupabaseConfigured(): boolean {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() ?? "";
   const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim() ?? "";

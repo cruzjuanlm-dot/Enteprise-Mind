@@ -1,0 +1,86 @@
+[
+  {
+    "id": "rel.hosts.kiln-ledger-bench",
+    "type": "hosts",
+    "from": "system.kiln-ledger",
+    "to": "environment.kiln-ledger-bench"
+  },
+  {
+    "id": "rel.hosts.studio-portal-demo",
+    "type": "hosts",
+    "from": "system.studio-portal",
+    "to": "environment.studio-portal-demo"
+  },
+  {
+    "id": "rel.exposes.firing-curves",
+    "type": "exposes",
+    "from": "system.kiln-ledger",
+    "to": "data-source.firing-curves"
+  },
+  {
+    "id": "rel.describes.firing-curve",
+    "type": "describes",
+    "from": "data-source.firing-curves",
+    "to": "table-schema.firing-curve"
+  },
+  {
+    "id": "rel.connects.ledger-portal",
+    "type": "connects",
+    "from": "system.kiln-ledger",
+    "to": "system.studio-portal"
+  },
+  {
+    "id": "rel.carries.ledger-to-portal",
+    "type": "carries",
+    "from": "integration.ledger-to-portal",
+    "to": "data-source.firing-curves"
+  },
+  {
+    "id": "rel.supports.calibration-check",
+    "type": "supports",
+    "from": "workflow.calibration-check",
+    "to": "project.kilnwatch"
+  },
+  {
+    "id": "rel.tracks.studio-sees-own-curve",
+    "type": "tracks",
+    "from": "project.kilnwatch",
+    "to": "requirement.studio-sees-own-curve"
+  },
+  {
+    "id": "rel.verifies.curve-stays-in-studio",
+    "type": "verifies",
+    "from": "test-case.curve-stays-in-studio",
+    "to": "requirement.studio-sees-own-curve"
+  },
+  {
+    "id": "rel.schedules.bench-demo",
+    "type": "schedules",
+    "from": "project.kilnwatch",
+    "to": "milestone.bench-demo"
+  },
+  {
+    "id": "rel.exercises.instructor-opens-curve",
+    "type": "exercises",
+    "from": "use-case.instructor-opens-curve",
+    "to": "system.studio-portal"
+  },
+  {
+    "id": "rel.performed-by.instructor-opens-curve",
+    "type": "performed_by",
+    "from": "use-case.instructor-opens-curve",
+    "to": "person-role.studio-lead"
+  },
+  {
+    "id": "rel.governs.no-recordings",
+    "type": "governs",
+    "from": "decision.no-recordings",
+    "to": "project.kilnwatch"
+  },
+  {
+    "id": "rel.staffs.calibration-check",
+    "type": "staffs",
+    "from": "person-role.calibration-owner",
+    "to": "workflow.calibration-check"
+  }
+]

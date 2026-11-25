@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://enterprise-mind.local/ontology/project.schema.json",
+  "title": "Project",
+  "description": "A named body of work. The database table shares the name public.projects with the pilot migration.",
+  "type": "object",
+  "additionalProperties": false,
+  "x-source-of-truth": "both",
+  "x-mirror-direction": "git_to_db",
+  "x-mirror-note": "The charter is governed in git. A later job copies it into the projects row. This table name collides with the pilot migration.",
+  "required": ["id", "type", "name", "summary", "status"],
+  "properties": {
+    "id": { "type": "string", "pattern": "^project\\.[a-z0-9]+(?:-[a-z0-9]+)*$" },
+    "type": { "const": "project" },
+    "name": { "type": "string", "minLength": 1 },
+    "summary": { "type": "string", "minLength": 1 },
+    "status": { "enum": ["proposed", "active", "closed"] }
+  }
+}

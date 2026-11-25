@@ -72,6 +72,21 @@ Job status moves through `received`, `stored`, `extracting`, and `ready_for_revi
 
 Admins see the tenant. Reviewers see assigned projects, source transcripts for those projects, and proposed units. Members see accepted units on assigned projects. Department pages only list projects the user can access. A second seeded project, Calibration vault, is intentionally hidden from the reviewer fixture.
 
+## Knowledge catalog
+
+A second slice stores governed writing in git and entity rows for a fictional company, Hearthline Instruments. The repository name, the Vercel project, and the Enterprise Mind title are unchanged.
+
+- `ontology/entities/*.schema.json` declares each entity type, its `x-source-of-truth` (`git`, `db`, or `both`), and the one-way `x-mirror-direction` a later sync would use. That sync is not built.
+- `ontology/relationships.yaml` lists the legal edges. Instance rows live in `ontology/seed/`.
+- `units/<bucket>/<id>/UNIT.md` is a knowledge unit. Buckets are architecture, design, conversations, decisions, and procedures. Procedures are SOPs and how-tos. Git history is the version log.
+- `comps/<id>/COMP.md` groups units for one reading.
+- `npm run validate-units` checks frontmatter, entity ids, and a name denylist. GitHub Actions runs the same command.
+- `npm run build-unit-index` writes `units/index.json`. That file is generated and gitignored. `npm run dev` and `npm run build` regenerate it.
+- `/catalog` and `/catalog/[bucket]/[id]` are static pages. `/entities` reads Supabase when `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` are set, and otherwise renders the seed JSON.
+- `supabase/migrations/20261123120000_entities.sql` is the entity schema. It stores a `unit_refs` path and commit SHA and does not store transcripts. Leave `supabase/migrations/20261108120000_core.sql` unapplied. Both files create `public.projects`, so they do not coexist.
+
+Apply the new migration only to a local database. Do not apply it to the hosted project.
+
 ## Not in this slice
 
 Connector catalog, SSO, glossary browsing, graph pages, execution, approval gates for side effects, and unattended work.

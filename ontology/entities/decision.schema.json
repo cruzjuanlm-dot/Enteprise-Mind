@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://enterprise-mind.local/ontology/decision.schema.json",
+  "title": "Decision",
+  "description": "A choice recorded for a project.",
+  "type": "object",
+  "additionalProperties": false,
+  "x-source-of-truth": "git",
+  "x-mirror-direction": "git_to_db",
+  "x-mirror-note": "Decisions are governed in git. A later job copies the decision row from that text.",
+  "required": ["id", "type", "name", "summary", "project_id", "state"],
+  "properties": {
+    "id": { "type": "string", "pattern": "^decision\\.[a-z0-9]+(?:-[a-z0-9]+)*$" },
+    "type": { "const": "decision" },
+    "name": { "type": "string", "minLength": 1 },
+    "summary": { "type": "string", "minLength": 1 },
+    "project_id": { "type": "string", "pattern": "^project\\.[a-z0-9]+(?:-[a-z0-9]+)*$" },
+    "state": { "enum": ["proposed", "accepted", "superseded"] }
+  }
+}

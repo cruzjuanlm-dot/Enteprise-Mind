@@ -9,6 +9,8 @@ const LINKS = [
   { href: "/ingest", label: "Submit transcript" },
   { href: "/departments", label: "Departments" },
   { href: "/jobs", label: "Jobs" },
+  { href: "/catalog", label: "Catalog" },
+  { href: "/entities", label: "Entities" },
 ];
 
 export function AppFrame({

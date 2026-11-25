@@ -40,3 +40,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Generated from units/*/UNIT.md. Rebuild with npm run build-unit-index.
+/units/index.json
+
+# Local name denylist. Never commit this file.
+.privacy-denylist.txt
