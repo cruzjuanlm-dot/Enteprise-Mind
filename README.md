@@ -1,6 +1,6 @@
 # Enterprise Mind
 
-Pilot slice for turning a transcript into proposed decisions and tasks, then accepting or rejecting them before they are trusted.
+Pilot slice for turning a transcript into proposed decisions and tasks, then accepting or rejecting them before they become shared context. The interface follows [DESIGN.md](DESIGN.md).
 
 This is the first build from the draft v0.2 PRD. It does not include the connector catalog, SSO, or unattended execution.
 
@@ -27,7 +27,7 @@ If the Supabase variables are empty, the app uses an in-memory stand-in and a lo
 
 The local sign-in fixtures are `reviewer@local.test`, `member@local.test`, `admin@local.test`, and `outsider@local.test`. They are not accounts and they disappear when Supabase Auth is configured.
 
-Apply `supabase/migrations/20261108120000_core.sql` to the Supabase project, then `supabase/seed.sql` for the pilot tenant, department, and project. After a real user exists in Supabase Auth, insert a `tenant_memberships` row and, unless the role is admin, a `project_memberships` row. The seed file shows the columns. Do not put keys or passwords in that file.
+Apply `supabase/migrations/20261108120000_core.sql` to the Supabase project, then `supabase/seed.sql` for the fictional Hearthline Instruments tenant, Field Systems department, and Sensor firmware review project. After a real user exists in Supabase Auth, insert a `tenant_memberships` row and, unless the role is admin, a `project_memberships` row. The seed file shows the columns. Do not put keys or passwords in that file.
 
 Create a private Storage bucket named `transcript-payloads` if the migration did not create it. The service role writes payloads. Ordinary users do not get a storage policy.
 
@@ -70,7 +70,7 @@ Job status moves through `received`, `stored`, `extracting`, and `ready_for_revi
 
 ## Access
 
-Admins see the tenant. Reviewers see assigned projects, source transcripts for those projects, and proposed units. Members see accepted units on assigned projects. Department pages only list projects the user can access. A second seeded project, Restricted project, is intentionally hidden from the reviewer fixture.
+Admins see the tenant. Reviewers see assigned projects, source transcripts for those projects, and proposed units. Members see accepted units on assigned projects. Department pages only list projects the user can access. A second seeded project, Calibration vault, is intentionally hidden from the reviewer fixture.
 
 ## Not in this slice
 

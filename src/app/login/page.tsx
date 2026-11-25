@@ -1,42 +1,68 @@
 import { redirect } from "next/navigation";
 import { SupabaseLogin } from "@/components/supabase-login";
-import { LOCAL_ACCOUNTS } from "@/lib/fixtures";
+import { PendingForm } from "@/components/pending-form";
+import { FIXTURES, LOCAL_ACCOUNTS } from "@/lib/fixtures";
 import { getContext } from "@/lib/session";
 
+export const metadata = { title: "Sign in · Enterprise Mind" };
+
 export default async function LoginPage() {
-  const { actor, mode } = await getContext();
+  const { actor, mode, repo } = await getContext();
   if (actor) redirect("/review");
 
+  const [tenant, other, project, restricted, otherProject] = await Promise.all([
+    repo.getTenant(FIXTURES.pilotTenant),
+    repo.getTenant(FIXTURES.otherTenant),
+    repo.getProject(FIXTURES.rolloutProject),
+    repo.getProject(FIXTURES.restrictedProject),
+    repo.getProject(FIXTURES.otherProject),
+  ]);
+
+  const details: Record<(typeof LOCAL_ACCOUNTS)[number]["id"], string> = {
+    [FIXTURES.reviewer]: `Can submit transcripts and accept or reject proposals on ${project?.name ?? "assigned projects"}.`,
+    [FIXTURES.member]: `Can read accepted units on ${project?.name ?? "assigned projects"}. Cannot review or submit transcripts.`,
+    [FIXTURES.admin]: `Can see every ${tenant?.name ?? "company"} project${restricted ? `, including ${restricted.name}` : ""}.`,
+    [FIXTURES.outsider]: `${other?.name ?? "Another company"}${otherProject ? `, ${otherProject.name}` : ""}. Cannot read ${tenant?.name ?? "the other company"}.`,
+  };
+
   return (
-    <main className="mx-auto grid max-w-xl gap-4">
-      <section className="panel p-6">
-        <h1 className="text-4xl">Sign in</h1>
-        {mode === "memory" ? (
-          <>
-            <p className="mt-3 text-sm text-[var(--muted)]">
-              Local development sessions stand in for Supabase Auth only while the Supabase variables are unset.
-              These fixtures are not accounts, and this form is disabled when Supabase is configured.
+    <main className="page measure">
+      <header className="page-head">
+        <div>
+          <h1>Sign in</h1>
+          {mode === "memory" ? (
+            <p className="lede">
+              Demo fixtures stand in for Supabase Auth only while Supabase is unset. They are not accounts, and this
+              list is hidden when Supabase is configured.
             </p>
-            <div className="mt-5 grid gap-2">
-              {LOCAL_ACCOUNTS.map((account) => (
-                <form key={account.id} action="/api/auth/local" method="post">
+          ) : (
+            <p className="lede">Use the Supabase Auth user that has a company membership. This is live authentication, not a demo fixture.</p>
+          )}
+        </div>
+      </header>
+      {mode === "memory" ? (
+        <section className="stack" aria-labelledby="fixtures">
+          <h2 id="fixtures">Demo fixtures</h2>
+          <div className="stack">
+            {LOCAL_ACCOUNTS.map((account, index) => (
+              <div key={account.id} className="account">
+                <PendingForm action="/api/auth/local">
                   <input type="hidden" name="email" value={account.email} />
-                  <button className="btn secondary block w-full" type="submit">
-                    Continue as {account.roleLabel}
+                  <button className={index === 0 ? "btn block" : "btn secondary block"} type="submit">
+                    <span className="idle-label">Continue as {account.roleLabel}</span>
+                    <span className="busy-label">Signing in</span>
                   </button>
-                </form>
-              ))}
-            </div>
-          </>
-        ) : (
-          <>
-            <p className="mt-3 mb-5 text-sm text-[var(--muted)]">
-              Use the Supabase Auth user that has a tenant membership.
-            </p>
-            <SupabaseLogin />
-          </>
-        )}
-      </section>
+                </PendingForm>
+                <p className="help">
+                  <span className="mono">{account.email}</span>. {details[account.id]}
+                </p>
+              </div>
+            ))}
+          </div>
+        </section>
+      ) : (
+        <SupabaseLogin />
+      )}
     </main>
   );
 }

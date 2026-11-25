@@ -36,7 +36,7 @@ test("ingest extracts proposals and review files only accepted units", async () 
   );
 
   const proposed = await repo.listUnits(reviewer, "proposed");
-  assert.equal(proposed.length, 2);
+  assert.equal(proposed.length, 3);
   assert.equal(await repo.listUnits(member, "proposed").then((units) => units.length), 0);
   assert.equal(await repo.listUnits(outsider, "proposed").then((units) => units.length), 0);
 
@@ -53,9 +53,9 @@ test("ingest extracts proposals and review files only accepted units", async () 
   await assert.rejects(() => repo.reviewUnit(member, task.id, "accept"), /not_found|not_proposed|forbidden/);
 
   const projects = await repo.listProjects(reviewer);
-  assert.deepEqual(projects.map((project) => project.name), ["Pilot rollout"]);
+  assert.deepEqual(projects.map((project) => project.name), ["Sensor firmware review"]);
   const adminProjects = await repo.listProjects(admin);
-  assert.ok(adminProjects.some((project) => project.name === "Restricted project"));
+  assert.ok(adminProjects.some((project) => project.name === "Calibration vault"));
 
   const again = await ingest(repo, reviewer, {
     projectId: FIXTURES.rolloutProject,
@@ -64,7 +64,7 @@ test("ingest extracts proposals and review files only accepted units", async () 
   });
   assert.equal(again.status, 200);
   assert.equal(again.body.idempotent, true);
-  assert.equal((await repo.listUnitsForTranscript(result.body.transcriptId!)).length, 2);
+  assert.equal((await repo.listUnitsForTranscript(result.body.transcriptId!)).length, 3);
 });
 
 test("rerun keeps accepted units and does not publish duplicates", async () => {
