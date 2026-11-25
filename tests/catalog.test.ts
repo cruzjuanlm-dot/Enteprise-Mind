@@ -14,7 +14,10 @@ const root = path.resolve(import.meta.dirname, "..");
 
 test("denied terms match the company names and skip the word field", () => {
   assert.deepEqual(deniedTerms("field notes for a kiln"), []);
+  assert.deepEqual(deniedTerms("a ring of clay"), []);
   assert.deepEqual(deniedTerms("Feld Entertainment"), ["Feld"]);
+  assert.deepEqual(deniedTerms("Ringling"), ["Ringling"]);
+  assert.deepEqual(deniedTerms("a disney catalog"), ["Disney"]);
   assert.deepEqual(deniedTerms("a TicketCel booth"), ["Ticketcel"]);
   assert.deepEqual(deniedTerms("the cirque tent"), ["Cirque"]);
 });

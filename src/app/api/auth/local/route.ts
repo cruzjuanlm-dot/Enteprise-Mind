@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { dataMode, LOCAL_COOKIE } from "@/lib/env";
 import { findLocalAccount } from "@/lib/fixtures";
-import { stringField } from "@/lib/http";
+import { sameOriginUrl, stringField } from "@/lib/http";
 
 export const runtime = "nodejs";
 
@@ -13,7 +13,10 @@ export async function POST(request: Request) {
   const email = stringField(form, "email") ?? "";
   const account = findLocalAccount(email);
   if (!account) return NextResponse.json({ error: "unknown_local_user" }, { status: 400 });
-  const response = new NextResponse(null, { status: 303, headers: { Location: "/review" } });
+  const response = new NextResponse(null, {
+    status: 303,
+    headers: { location: sameOriginUrl(request, "/review").toString() },
+  });
   response.cookies.set(LOCAL_COOKIE, account.id, {
     httpOnly: true,
     sameSite: "lax",

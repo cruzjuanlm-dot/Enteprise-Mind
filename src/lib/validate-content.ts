@@ -32,6 +32,8 @@ const DENYLIST_ROOTS = [
   "supabase/seed_meetings.sql",
   "supabase/migrations/20261123120000_entities.sql",
   "supabase/migrations/20261124120000_meetings.sql",
+  "supabase/migrations/20261125120000_admin_tokens.sql",
+  "supabase/seed_admin.sql",
 ];
 
 type Edge = { type: string; from: string; to: string };

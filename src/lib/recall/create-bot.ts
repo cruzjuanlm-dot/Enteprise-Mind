@@ -5,12 +5,14 @@ import type { RecallDeps } from "./deps";
 import { RecallError } from "./errors";
 import { recallErrorResponse } from "./http";
 import { SubscriptionInactiveError, requireActiveSubscription } from "../subscription";
+import { authenticatePlaintext } from "../tokens/authenticate";
+import { TOKEN_PREFIX, TokenAuthError } from "../tokens/crypto";
 
 const BOT_NAME = "Enterprise Mind";
 
 export async function handleCreateBot(request: Request, deps: RecallDeps): Promise<Response> {
   try {
-    authorizeCaller(request, deps.env);
+    await authorizeCaller(request, deps);
     requireActiveSubscription(deps.env);
     const region = recallRegion(deps.env);
     const apiKey = recallApiKey(deps.env);
@@ -66,18 +68,34 @@ export async function handleCreateBot(request: Request, deps: RecallDeps): Promi
       { status: 200 },
     );
   } catch (error) {
-    if (error instanceof SubscriptionInactiveError) {
+    if (error instanceof SubscriptionInactiveError || error instanceof TokenAuthError) {
       return Response.json({ error: error.code }, { status: error.status });
     }
     return recallErrorResponse(error);
   }
 }
 
-function authorizeCaller(request: Request, env: NodeJS.ProcessEnv): void {
-  const secret = botsAuthSecret(env);
+async function authorizeCaller(request: Request, deps: RecallDeps): Promise<void> {
   const header = request.headers.get("authorization") ?? "";
   const match = /^Bearer\s+(\S+)$/.exec(header);
-  if (!safeEqual(match?.[1] ?? "", secret)) throw new RecallError("unauthorized", 403);
+  const presented = match?.[1] ?? "";
+  if (presented.startsWith(TOKEN_PREFIX)) {
+    if (!deps.tokenStore) throw new RecallError("unauthorized", 401);
+    try {
+      await authenticatePlaintext(presented, {
+        env: deps.env,
+        store: deps.tokenStore,
+        now: deps.now(),
+        requiredScope: "meetings:write",
+      });
+    } catch (error) {
+      if (error instanceof TokenAuthError) throw new RecallError(error.code, error.status);
+      throw error;
+    }
+    return;
+  }
+  const secret = botsAuthSecret(deps.env);
+  if (!safeEqual(presented, secret)) throw new RecallError("unauthorized", 403);
 }
 
 async function readBody(request: Request): Promise<{ meetingUrl: string; title: string; projectId: string; startsAt: string | null }> {

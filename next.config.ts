@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  serverExternalPackages: ["@modelcontextprotocol/sdk", "zod"],
 };
 
 export default nextConfig;
