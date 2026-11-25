@@ -59,3 +59,11 @@ edges:
     from: person_role
     to: workflow
     description: A role staffs a workflow.
+  - type: assigns
+    from: action_item
+    to: person_role
+    description: An action item is assigned to a role.
+  - type: follows
+    from: action_item
+    to: decision
+    description: An action item follows a recorded decision.

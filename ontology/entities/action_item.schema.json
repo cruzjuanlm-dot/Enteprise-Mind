@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://enterprise-mind.local/ontology/action_item.schema.json",
+  "title": "Action item",
+  "description": "A follow-up recorded from a meeting. The transcript it came from is not stored.",
+  "type": "object",
+  "additionalProperties": false,
+  "x-source-of-truth": "db",
+  "x-mirror-direction": "db_to_git",
+  "x-mirror-note": "The meeting job writes the action item row. A later job may copy that row into git. The row is a summary, not a transcript.",
+  "required": ["id", "type", "name", "summary", "project_id", "state"],
+  "properties": {
+    "id": { "type": "string", "pattern": "^action-item\\.[a-z0-9]+(?:-[a-z0-9]+)*$" },
+    "type": { "const": "action_item" },
+    "name": { "type": "string", "minLength": 1 },
+    "summary": { "type": "string", "minLength": 1 },
+    "project_id": { "type": "string", "pattern": "^project\\.[a-z0-9]+(?:-[a-z0-9]+)*$" },
+    "state": { "enum": ["open", "done"] },
+    "owner_role_id": { "type": "string", "pattern": "^person-role\\.[a-z0-9]+(?:-[a-z0-9]+)*$" }
+  }
+}

@@ -44,8 +44,16 @@ Copy `.env.example` and set values only in a local untracked env file or in the 
 | `EXTRACTION_MODEL_BASE_URL` | Required only when a model key is set. OpenAI-compatible `/chat/completions` base |
 | `EXTRACTION_MODEL` | Optional model name |
 | `ENTERPRISE_MIND_DATA_MODE` | Optional `memory` or `supabase` |
+| `RECALL_API_KEY` | Required to send a meeting bot. Server only |
+| `RECALL_REGION` | Required with the API key. Region slug for the Recall origin |
+| `RECALL_WORKSPACE_SECRET` | Required to accept Recall webhooks. `whsec_` prefix |
+| `RECALL_DOWNLOAD_HOSTS` | Required to download a transcript. Comma-separated HTTPS hosts |
+| `FLUX_SUBSCRIPTION_ACTIVE` | Required to send a bot. `true` or the request is rejected. Stripe is not connected |
+| `FLUX_BOTS_AUTH_SECRET` | Required on `POST /api/bots`. Callers send `Authorization: Bearer` |
+| `GITHUB_TOKEN` or `FLUX_GITHUB_TOKEN` | Optional. Opens a draft pull request for meeting notes |
+| `LLM_ENABLED` | Leave empty or `false`. Meeting extraction does not call a model |
 
-The service role bypasses row level security. Application pages and review actions use the signed-in user session. Do not expose the service role key to the browser.
+The service role bypasses row level security. Application pages and review actions use the signed-in user session. The meeting bot uses the service role only when Supabase mode is on, and only on the server, because meeting tables are select-only for anonymous and signed-in users. Do not expose the service role key to the browser. A missing required variable fails closed.
 
 ## Ingest
 
@@ -87,6 +95,20 @@ A second slice stores governed writing in git and entity rows for a fictional co
 
 Apply the new migration only to a local database. Do not apply it to the hosted project.
 
+`supabase/migrations/20261124120000_meetings.sql` comes after the entities migration. It adds meetings, bots, hash-only meeting artifacts, and action items. `calendar_event_id` is reserved for a later calendar slice and is null here. Apply it locally, then `supabase/seed_entities.sql`, then `supabase/seed_meetings.sql`. Do not apply it to a hosted project, and do not apply it on top of `20261108120000_core.sql`.
+
+## Meeting bot
+
+`POST /api/bots` sends a Recall Create Bot request. The caller sends `Authorization: Bearer` with `FLUX_BOTS_AUTH_SECRET`. The server calls Recall with `Authorization: Token` and `RECALL_API_KEY`. A meeting more than 10 minutes away is scheduled with `join_at`. A sooner meeting is ad-hoc. An HTTP 507 waits about 30 seconds and tries once more. Transcription uses Recall's built-in `recallai_streaming` provider. A missing key returns 503. An inactive `FLUX_SUBSCRIPTION_ACTIVE` flag returns 403. Stripe is not called.
+
+Recall posts lifecycle events to `/api/webhooks/recall`. The route checks the raw body with HMAC-SHA256 over `id.timestamp.rawBody`, accepts `webhook-*` and `svix-*` headers, and rejects timestamps outside five minutes. It returns 200 before it fetches anything. It does not poll bot status.
+
+On `transcript.done` the job reads `GET /api/v1/transcript/{id}/` from the regional origin, downloads `data.download_url` only when the host is listed in `RECALL_DOWNLOAD_HOSTS`, and runs the rule-based extractor. It writes a conversations unit and a decisions unit, plus action items and a decision row. It then discards the transcript. The artifact row keeps a sha256, a segment count, speaker labels, and pointers. The same transcript hash does not write a second set of units.
+
+When `GITHUB_TOKEN` or `FLUX_GITHUB_TOKEN` is set (and `GITHUB_REPOSITORY` or a GitHub origin remote identifies the repo), those units open a draft pull request. Otherwise they are written to the working tree.
+
+Subscribe the webhook to `bot.joining_call`, `bot.in_waiting_room`, `bot.in_call_not_recording`, `bot.recording_permission_allowed`, `bot.recording_permission_denied`, `bot.in_call_recording`, `bot.call_ended`, `bot.done`, `bot.fatal`, `recording.done`, `transcript.done`, and `transcript.failed`. This repository does not register that webhook.
+
 ## Not in this slice
 
-Connector catalog, SSO, glossary browsing, graph pages, execution, approval gates for side effects, and unattended work.
+Connector catalog, SSO, glossary browsing, graph pages, execution, approval gates for side effects, unattended work, Calendar V2 auto-join, Stripe billing, and model-backed meeting extraction.

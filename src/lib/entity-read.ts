@@ -36,6 +36,8 @@ const LABELS: Record<string, string> = {
   expected: "Expected",
   target_on: "Target day",
   state: "State",
+  owner_role_id: "Owner role",
+  meeting_id: "Meeting",
 };
 
 export function entityAttributes(entity: SeedEntity): { label: string; value: string }[] {

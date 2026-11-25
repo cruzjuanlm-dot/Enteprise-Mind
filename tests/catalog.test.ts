@@ -101,6 +101,7 @@ test("entity source of truth is the schema declaration", () => {
       { type: "milestone", sourceOfTruth: "db", mirrorDirection: "db_to_git" },
       { type: "decision", sourceOfTruth: "git", mirrorDirection: "git_to_db" },
       { type: "person_role", sourceOfTruth: "db", mirrorDirection: "db_to_git" },
+      { type: "action_item", sourceOfTruth: "db", mirrorDirection: "db_to_git" },
     ],
   );
 });
