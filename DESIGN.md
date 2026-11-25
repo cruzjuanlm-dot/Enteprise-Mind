@@ -54,7 +54,7 @@ Sentence case. Timestamps include the timezone. Confidence stays “not assessed
 ## Layout
 
 Page padding 24px, 16px below 768px. Panel padding 16px. Section gap 24px. Control gap 8px.
-From 1200px: 248px navigation and a 360px evidence rail. Below that, navigation is a drawer and the rail stacks under the statement.
+From 1200px: 248px navigation and a 360px evidence rail. Below 1200px the navigation is a drawer. From 720px through 960px the evidence rail stays beside the statement, narrowed so the quotation and review actions fit a 768×1024 screen. Below 720px, and from 961px through 1199px, the rail stacks under the statement.
 Touch targets are at least 44px. Rows are at least 48px and may grow. Prose stays within 72ch. Radius is 8px for panels, 6px for controls, and 4px for status labels. No ambient shadow. The drawer uses `0 8px 24px rgb(15 23 42 / 0.12)`.
 Motion is 180ms on the drawer transform only, and off under reduced motion.
 

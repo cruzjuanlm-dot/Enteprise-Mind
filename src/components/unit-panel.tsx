@@ -41,8 +41,20 @@ export function UnitPanel({
   const executable = unit.unitType === "design_decision" || unit.unitType === "pending_task";
   const ready = executionFieldsReady(unit);
   const state = unit.reviewState ?? "proposed";
+  const titleId = unit.id ? `review-unit-${unit.id}` : "review-unit-preview";
+  const note = executable ? (
+    <p className="note" data-tone={ready ? "info" : "warning"}>
+      {ready
+        ? "Owner, dependencies, systems, acceptance, due date, and approval are stated. Accepting does not execute the task."
+        : "Some execution fields are unknown. They were left unknown. Accepting does not execute the task."}
+    </p>
+  ) : (
+    <p className="note" data-tone="info">
+      This is shared vocabulary or context. It is not an executable task.
+    </p>
+  );
   return (
-    <article className="detail">
+    <article className="detail" aria-labelledby={titleId}>
       <div className="panel">
         <div className="cluster">
           <span className="status" data-tone={preview ? "neutral" : reviewTone(state)}>
@@ -51,9 +63,17 @@ export function UnitPanel({
           <span className="meta">{UNIT_LABEL[unit.unitType]}</span>
           <span className="meta">{projectName ?? "Unassigned"}</span>
         </div>
-        <h2 className="follow">{unit.title}</h2>
+        <h2 id={titleId} className="follow">
+          {unit.title}
+        </h2>
         <h3 className="label">Extracted statement</h3>
         <p>{unit.body}</p>
+        {actions ? (
+          <>
+            {note}
+            <div className="actions">{actions}</div>
+          </>
+        ) : null}
         <dl className="fields">
           <Field label="Owner" value={knownText(unit.ownerPresence, unit.ownerName)} unknown={unit.ownerPresence === "unknown"} />
           <Field
@@ -78,20 +98,9 @@ export function UnitPanel({
             unknown={unit.approvalPresence === "unknown"}
           />
         </dl>
-        {executable ? (
-          <p className="note" data-tone={ready ? "info" : "warning"}>
-            {ready
-              ? "Owner, dependencies, systems, acceptance, due date, and approval are stated. Accepting does not execute the task."
-              : "Some execution fields are unknown. They were left unknown. Accepting does not execute the task."}
-          </p>
-        ) : (
-          <p className="note" data-tone="info">
-            This is shared vocabulary or context. It is not an executable task.
-          </p>
-        )}
+        {actions ? null : note}
         <p className="meta follow">Confidence: not assessed.</p>
         {unit.id ? <p className="meta mono">{unit.id}</p> : null}
-        {actions ? <div className="actions">{actions}</div> : null}
       </div>
       <aside className="rail" aria-label="Source evidence">
         <h2>Source evidence</h2>

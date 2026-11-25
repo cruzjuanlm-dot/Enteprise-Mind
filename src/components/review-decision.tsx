@@ -2,7 +2,15 @@
 
 import { useRef, useState, type FormEvent } from "react";
 
-export function ReviewDecision({ unitId }: { unitId: string }) {
+export function ReviewDecision({
+  unitId,
+  unitTitle,
+  describedBy,
+}: {
+  unitId: string;
+  unitTitle: string;
+  describedBy?: string;
+}) {
   const lock = useRef(false);
   const [pending, setPending] = useState<"accept" | "reject" | null>(null);
 
@@ -26,12 +34,15 @@ export function ReviewDecision({ unitId }: { unitId: string }) {
     });
   }
 
+  const acceptName = `${pending === "accept" ? "Accepting" : "Accept"} ${unitTitle}`;
+  const rejectName = `${pending === "reject" ? "Rejecting" : "Reject"} ${unitTitle}`;
+
   return (
-    <div className="cluster" data-review-decision="">
+    <div className="cluster" role="group" aria-label={`Review ${unitTitle}`} data-review-decision="">
       <form action="/api/review" method="post" onSubmit={onSubmit} aria-busy={pending === "accept" || undefined}>
         <input type="hidden" name="unitId" value={unitId} />
         <input type="hidden" name="action" value="accept" />
-        <button className="btn" type="submit" disabled={pending !== null}>
+        <button className="btn" type="submit" disabled={pending !== null} aria-label={acceptName} aria-describedby={describedBy}>
           <span className="idle-label">Accept</span>
           <span className="busy-label">Accepting</span>
         </button>
@@ -39,7 +50,13 @@ export function ReviewDecision({ unitId }: { unitId: string }) {
       <form action="/api/review" method="post" onSubmit={onSubmit} aria-busy={pending === "reject" || undefined}>
         <input type="hidden" name="unitId" value={unitId} />
         <input type="hidden" name="action" value="reject" />
-        <button className="btn danger" type="submit" disabled={pending !== null}>
+        <button
+          className="btn danger"
+          type="submit"
+          disabled={pending !== null}
+          aria-label={rejectName}
+          aria-describedby={describedBy}
+        >
           <span className="idle-label">Reject</span>
           <span className="busy-label">Rejecting</span>
         </button>
