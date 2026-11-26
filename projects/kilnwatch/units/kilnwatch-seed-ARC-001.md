@@ -1,7 +1,10 @@
 ---
-id: kiln-ledger-split
+id: kilnwatch-seed-ARC-001
 title: Kiln Ledger and Studio Portal stay separate
-bucket: architecture
+type: ARC
+scope: project
+project: project.kilnwatch
+source_id: source.seed
 version: 1
 status: accepted
 owner: person-role.catalog-editor

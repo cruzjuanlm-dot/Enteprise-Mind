@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://enterprise-mind.local/ontology/schemas/unit.schema.json",
+  "title": "Knowledge unit",
+  "description": "Frontmatter for one governed Markdown unit. The file stays in projects/{id}/units/ when scope becomes company. Git history is the version log.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "title", "type", "scope", "project", "source_id", "version", "status", "owner", "entities", "supersedes"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*-(DEC|REQ|ARC|DS|BR|WF|OQ)-[0-9]{3}$"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "type": {
+      "enum": ["DEC", "REQ", "ARC", "DS", "BR", "WF", "OQ"]
+    },
+    "scope": {
+      "enum": ["project", "company"]
+    },
+    "project": {
+      "type": "string",
+      "pattern": "^project\\.[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
+    "source_id": {
+      "type": "string",
+      "pattern": "^source\\.[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "status": {
+      "enum": ["draft", "accepted", "superseded"]
+    },
+    "owner": {
+      "type": "string",
+      "pattern": "^person-role\\.[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
+    "entities": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^(?:system|environment|data-source|table-schema|integration|workflow|project|requirement|use-case|test-case|milestone|decision|person-role|action-item)\\.[a-z0-9]+(?:-[a-z0-9]+)*$"
+      }
+    },
+    "supersedes": {
+      "anyOf": [
+        { "type": "null" },
+        {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*-(DEC|REQ|ARC|DS|BR|WF|OQ)-[0-9]{3}$"
+        }
+      ]
+    }
+  }
+}

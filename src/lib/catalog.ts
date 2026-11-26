@@ -20,10 +20,13 @@ export function listUnits(): UnitIndexEntry[] {
 }
 
 export function readUnit(entry: UnitIndexEntry): { entry: UnitIndexEntry; body: string } {
-  const unitsRoot = path.resolve(process.cwd(), "units");
+  const projectsRoot = path.resolve(process.cwd(), "projects");
   const full = path.resolve(process.cwd(), entry.path);
-  if (full !== unitsRoot && !full.startsWith(`${unitsRoot}${path.sep}`)) {
-    throw new Error("Unit path escapes the units directory.");
+  if (entry.path.includes("..") || !entry.path.startsWith("projects/") || !entry.path.endsWith(".md")) {
+    throw new Error("Unit path escapes the projects directory.");
+  }
+  if (full !== projectsRoot && !full.startsWith(`${projectsRoot}${path.sep}`)) {
+    throw new Error("Unit path escapes the projects directory.");
   }
   const markdown = fs.readFileSync(full, "utf8");
   return { entry, body: parseFrontmatter(markdown).body.trim() };

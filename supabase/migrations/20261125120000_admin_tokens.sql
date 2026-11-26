@@ -1,7 +1,6 @@
 -- Flux admin, subscribers, and API tokens.
--- Apply only to a local database, after 20261124120000_meetings.sql.
+-- Apply only to a local database, after core, entities, and meetings, in timestamp order.
 -- Do not apply this file to a hosted project.
--- Do not apply it on top of 20261108120000_core.sql.
 --
 -- api_tokens.token_hash is an HMAC-SHA256 of the token using the server pepper.
 -- The plaintext token is not a column. anon and authenticated cannot select the hash.

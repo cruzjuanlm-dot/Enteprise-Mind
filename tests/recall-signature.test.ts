@@ -113,6 +113,7 @@ function badRequest(): Request {
 function deps(store: MemoryRecallStore, schedule: () => void): RecallDeps {
   return {
     env: {
+      NODE_ENV: "test",
       RECALL_WORKSPACE_SECRET: secret,
       RECALL_API_KEY: "recall-test-key",
       RECALL_REGION: "us-east-1",

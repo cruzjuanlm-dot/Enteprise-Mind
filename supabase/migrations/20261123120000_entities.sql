@@ -6,11 +6,10 @@
 -- that file. commit_sha stays null until a later sync pins a commit.
 -- Git history of the Markdown file is the version log.
 --
--- Conflict with supabase/migrations/20261108120000_core.sql:
--- both files create public.projects, with different columns and keys.
--- core.sql is the pilot review schema (tenants, transcripts, knowledge_units).
--- This file is the entity catalog. Do not apply both to the same database.
--- Running them in timestamp order fails at create table public.projects.
+-- public.projects belongs to 20261108120000_core.sql (tenant pilot projects).
+-- This file stores the catalog project entity as public.entity_projects so
+-- core, entities, meetings, and admin_tokens apply in timestamp order.
+-- core.sql is not modified here.
 --
 -- Source of truth for each entity type is declared in ontology/entities.
 -- This migration does not copy git into the database. That sync is later.
@@ -55,19 +54,19 @@ create table public.systems (
   constraint systems_name_check check (btrim(name) <> '')
 );
 
-create table public.projects (
+create table public.entity_projects (
   id text primary key,
   name text not null,
   summary text not null,
   status text not null,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
-  constraint projects_status_check check (status in ('proposed', 'active', 'closed')),
-  constraint projects_name_check check (btrim(name) <> '')
+  constraint entity_projects_status_check check (status in ('proposed', 'active', 'closed')),
+  constraint entity_projects_name_check check (btrim(name) <> '')
 );
 
-comment on table public.projects is
-  'Flux project entity. Collides with 20261108120000_core.sql, which also creates public.projects.';
+comment on table public.entity_projects is
+  'Catalog project entity. Pilot rows stay in public.projects from 20261108120000_core.sql.';
 
 create table public.environments (
   id text primary key,
@@ -118,7 +117,7 @@ create table public.workflows (
   id text primary key,
   name text not null,
   summary text not null,
-  project_id text not null references public.projects (id),
+  project_id text not null references public.entity_projects (id),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -127,7 +126,7 @@ create table public.requirements (
   id text primary key,
   name text not null,
   summary text not null,
-  project_id text not null references public.projects (id),
+  project_id text not null references public.entity_projects (id),
   statement text not null,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
@@ -159,7 +158,7 @@ create table public.milestones (
   id text primary key,
   name text not null,
   summary text not null,
-  project_id text not null references public.projects (id),
+  project_id text not null references public.entity_projects (id),
   target_on date not null,
   status text not null,
   created_at timestamptz not null default now(),
@@ -171,7 +170,7 @@ create table public.decisions (
   id text primary key,
   name text not null,
   summary text not null,
-  project_id text not null references public.projects (id),
+  project_id text not null references public.entity_projects (id),
   state text not null,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
@@ -205,7 +204,10 @@ create table public.entity_relationships (
 
 create table public.unit_refs (
   id text primary key,
-  bucket text not null,
+  unit_type text not null,
+  scope text not null,
+  project_id text not null references public.entity_projects (id),
+  source_id text not null,
   title text not null,
   version integer not null,
   status text not null,
@@ -215,8 +217,14 @@ create table public.unit_refs (
   supersedes text references public.unit_refs (id),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
-  constraint unit_refs_bucket_check check (
-    bucket in ('architecture', 'design', 'conversations', 'decisions', 'procedures')
+  constraint unit_refs_type_check check (
+    unit_type in ('DEC', 'REQ', 'ARC', 'DS', 'BR', 'WF', 'OQ')
+  ),
+  constraint unit_refs_scope_check check (scope in ('project', 'company')),
+  constraint unit_refs_source_id_check check (source_id ~ '^source\.[a-z0-9]+(?:-[a-z0-9]+)*$'),
+  constraint unit_refs_id_type_check check (
+    id ~ '^[a-z0-9]+(?:-[a-z0-9]+)*-(DEC|REQ|ARC|DS|BR|WF|OQ)-[0-9]{3}$'
+    and id ~ ('-' || unit_type || '-[0-9]{3}$')
   ),
   constraint unit_refs_version_check check (version >= 1),
   constraint unit_refs_status_check check (status in ('draft', 'accepted', 'superseded')),
@@ -226,7 +234,7 @@ create table public.unit_refs (
 );
 
 comment on column public.unit_refs.repo_path is
-  'Path of UNIT.md in the git repository. The file body is not copied here.';
+  'Path of the unit markdown file. The file body is not copied here. Company scope does not change the path.';
 
 comment on column public.unit_refs.commit_sha is
   'Optional pin recorded by a later sync. Null means git history is still the only version log.';
@@ -251,7 +259,8 @@ create index milestones_project_id_idx on public.milestones (project_id);
 create index decisions_project_id_idx on public.decisions (project_id);
 create index entity_relationships_from_idx on public.entity_relationships (from_type, from_id);
 create index entity_relationships_to_idx on public.entity_relationships (to_type, to_id);
-create index unit_refs_bucket_idx on public.unit_refs (bucket);
+create index unit_refs_project_id_idx on public.unit_refs (project_id);
+create index unit_refs_unit_type_idx on public.unit_refs (unit_type);
 create index unit_ref_entities_entity_id_idx on public.unit_ref_entities (entity_id);
 
 create trigger person_roles_touch_updated_at
@@ -262,8 +271,8 @@ create trigger systems_touch_updated_at
   before update on public.systems
   for each row execute function public.flux_touch_updated_at();
 
-create trigger projects_touch_updated_at
-  before update on public.projects
+create trigger entity_projects_touch_updated_at
+  before update on public.entity_projects
   for each row execute function public.flux_touch_updated_at();
 
 create trigger environments_touch_updated_at
@@ -317,7 +326,7 @@ begin
   foreach rel in array array[
     'person_roles',
     'systems',
-    'projects',
+    'entity_projects',
     'environments',
     'data_sources',
     'table_schemas',
@@ -356,7 +365,7 @@ begin
   foreach rel in array array[
     'person_roles',
     'systems',
-    'projects',
+    'entity_projects',
     'environments',
     'data_sources',
     'table_schemas',

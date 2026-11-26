@@ -6,7 +6,7 @@ import type { RecallDeps } from "./deps";
 import { RecallError } from "./errors";
 import { publishMeetingUnits } from "./publish";
 import type { BotRecord, MeetingRecord } from "./store";
-import { extractMeetingNotes, normalizeTranscript, sha256Hex, uniqueSpeakers } from "./transcript";
+import { extractMeetingNotes, normalizeTranscript, sha256Hex, unlabeledClaims, uniqueSpeakers } from "./transcript";
 
 export type RecallEvent = {
   webhookId: string;
@@ -102,6 +102,7 @@ async function ingestTranscript(event: RecallEvent, deps: RecallDeps): Promise<v
   if (deniedTerms(`${spoken}\n${speakers.join("\n")}`).length > 0) return;
 
   const notes = extractMeetingNotes(spoken);
+  const unresolved = [...notes.unresolved, ...unlabeledClaims(segments)];
   const { meeting, bot } = await ensureMeeting(event, deps);
   const published = await publishMeetingUnits({
     root: deps.root,
@@ -113,6 +114,7 @@ async function ingestTranscript(event: RecallEvent, deps: RecallDeps): Promise<v
     projectId: meeting.projectId,
     actions: notes.actions,
     decisions: notes.decisions,
+    unresolved,
   });
   const saved = await deps.store.saveArtifact({
     id: `artifact.${randomUUID()}`,
@@ -178,9 +180,13 @@ async function ingestTranscript(event: RecallEvent, deps: RecallDeps): Promise<v
       });
     }
   }
+  const sourceId = `source.mtg${hash.slice(0, 8)}`;
   await deps.store.saveUnitRef({
     id: published.conversationId,
-    bucket: "conversations",
+    unitType: unresolved.length > 0 ? "OQ" : "BR",
+    scope: "project",
+    projectId: meeting.projectId,
+    sourceId,
     title: meeting.title,
     repoPath: published.conversationPath,
     owner: "person-role.catalog-editor",
@@ -189,8 +195,11 @@ async function ingestTranscript(event: RecallEvent, deps: RecallDeps): Promise<v
   if (published.decisionUnitId && published.decisionPath) {
     await deps.store.saveUnitRef({
       id: published.decisionUnitId,
-      bucket: "decisions",
-      title: published.decisions.map((note) => note.name).join("; "),
+      unitType: "DEC",
+      scope: "project",
+      projectId: meeting.projectId,
+      sourceId,
+      title: published.decisions[0]?.name ?? meeting.title,
       repoPath: published.decisionPath,
       owner: "person-role.catalog-editor",
       entityIds: [meeting.projectId, ...published.decisions.map((note) => note.id)],

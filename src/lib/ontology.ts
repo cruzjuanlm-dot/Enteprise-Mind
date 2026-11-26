@@ -29,7 +29,7 @@ export const ENTITY_TABLE: Record<EntityType, string> = {
   table_schema: "table_schemas",
   integration: "integrations",
   workflow: "workflows",
-  project: "projects",
+  project: "entity_projects",
   requirement: "requirements",
   use_case: "use_cases",
   test_case: "test_cases",

@@ -2,9 +2,12 @@ import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { stringify } from "yaml";
+import { nextUnitId, unitRelativePath, type TypeCode } from "../frontmatter";
+import { appendTriage, type TriageClaim } from "../triage";
+import { writeUnitIndex } from "../unit-index";
 import { githubToken } from "./config";
 import { RecallError } from "./errors";
-import type { MeetingNote } from "./transcript";
+import type { MeetingNote, UnresolvedClaim } from "./transcript";
 import { roleIdForOwner } from "./transcript";
 
 export type PublishedNote = {
@@ -50,6 +53,7 @@ export async function publishMeetingUnits(input: {
   projectId: string;
   actions: MeetingNote[];
   decisions: MeetingNote[];
+  unresolved: UnresolvedClaim[];
 }): Promise<PublishResult> {
   const suffix = input.hash.slice(0, 8);
   const actions = input.actions.map((note) => catalogNote(input.root, "action_item", note, input.projectId));
@@ -88,17 +92,26 @@ export async function publishMeetingUnits(input: {
       });
     }
   }
-  const conversationId = `${slugify(input.meetingTitle)}-${suffix}`;
-  const decisionUnitId = decisions[0] ? `${slugify(decisions[0].name)}-${suffix}` : null;
-  const conversationPath = path.posix.join("units", "conversations", conversationId, "UNIT.md");
-  const decisionPath = decisionUnitId ? path.posix.join("units", "decisions", decisionUnitId, "UNIT.md") : null;
+  const sourceShort = `mtg${suffix}`;
+  const sourceId = `source.${sourceShort}`;
+  const summaryType: TypeCode = input.unresolved.length > 0 ? "OQ" : "BR";
+  const existingIds = listUnitIds(input.root, input.projectId);
+  const conversationId = nextUnitId(existingIds, input.projectId, sourceShort, summaryType);
+  existingIds.push(conversationId);
+  const decisionUnits = decisions.map((note) => {
+    const id = nextUnitId(existingIds, input.projectId, sourceShort, "DEC");
+    existingIds.push(id);
+    return { note, id, path: unitRelativePath(input.projectId, id) };
+  });
+  const decisionUnitId = decisionUnits[0]?.id ?? null;
+  const conversationPath = unitRelativePath(input.projectId, conversationId);
+  const decisionPath = decisionUnits[0]?.path ?? null;
   const conversationEntities = unique([
     input.projectId,
     ...decisions.map((note) => note.id),
     ...actions.map((note) => note.id),
     OWNER,
   ]);
-  const decisionEntities = unique([input.projectId, ...decisions.map((note) => note.id), OWNER]);
 
   const files = new Map<string, string>();
   files.set(
@@ -106,46 +119,58 @@ export async function publishMeetingUnits(input: {
     renderUnit({
       id: conversationId,
       title: input.meetingTitle,
-      bucket: "conversations",
+      type: summaryType,
+      projectId: input.projectId,
+      sourceId,
       entities: conversationEntities,
       body: conversationBody(input.meetingTitle, actions, decisions, input.segmentCount),
     }),
   );
-  if (decisionPath && decisionUnitId) {
+  for (const decision of decisionUnits) {
     files.set(
-      decisionPath,
+      decision.path,
       renderUnit({
-        id: decisionUnitId,
-        title: decisions.map((note) => note.name).join("; "),
-        bucket: "decisions",
-        entities: decisionEntities,
-        body: decisionBody(decisions),
+        id: decision.id,
+        title: decision.note.name,
+        type: "DEC",
+        projectId: input.projectId,
+        sourceId,
+        entities: unique([input.projectId, decision.note.id, OWNER]),
+        body: decisionBody([decision.note]),
       }),
     );
   }
   for (const [relative, content] of files) {
     writeRepoFile(input.root, relative, content);
   }
+  const triageClaims: TriageClaim[] = input.unresolved.map((claim) => ({
+    projectId: input.projectId,
+    sourceId,
+    kind: claim.kind,
+    title: claim.title,
+  }));
+  appendTriage(input.root, triageClaims);
   rememberUnits(input.root, [
     {
       id: conversationId,
-      bucket: "conversations",
+      unitType: summaryType,
+      projectId: input.projectId,
+      sourceId,
       title: input.meetingTitle,
       repoPath: conversationPath,
       entityIds: conversationEntities,
     },
-    ...(decisionPath && decisionUnitId
-      ? [
-          {
-            id: decisionUnitId,
-            bucket: "decisions",
-            title: decisions.map((note) => note.name).join("; "),
-            repoPath: decisionPath,
-            entityIds: decisionEntities,
-          },
-        ]
-      : []),
+    ...decisionUnits.map((decision) => ({
+      id: decision.id,
+      unitType: "DEC" as const,
+      projectId: input.projectId,
+      sourceId,
+      title: decision.note.name,
+      repoPath: decision.path,
+      entityIds: unique([input.projectId, decision.note.id, OWNER]),
+    })),
   ]);
+  writeUnitIndex(input.root);
 
   const token = githubToken(input.env);
   const base = {
@@ -259,12 +284,30 @@ function entityInsert(entity: CatalogEntity): string {
   return `insert into public.decisions (id, name, summary, project_id, state) values (${sql(entity.id)}, ${sql(entity.name)}, ${sql(entity.summary)}, ${sql(entity.project_id ?? "")}, ${sql(entity.state ?? "proposed")}) on conflict (id) do nothing;`;
 }
 
+function listUnitIds(root: string, projectId: string): string[] {
+  const slug = projectId.startsWith("project.") ? projectId.slice("project.".length) : projectId;
+  const directory = path.join(root, "projects", slug, "units");
+  if (!fs.existsSync(directory)) return [];
+  return fs
+    .readdirSync(directory)
+    .filter((name) => name.endsWith(".md"))
+    .map((name) => name.slice(0, -".md".length));
+}
+
 function rememberUnits(
   root: string,
-  units: { id: string; bucket: string; title: string; repoPath: string; entityIds: string[] }[],
+  units: {
+    id: string;
+    unitType: TypeCode;
+    projectId: string;
+    sourceId: string;
+    title: string;
+    repoPath: string;
+    entityIds: string[];
+  }[],
 ): void {
   for (const unit of units) {
-    const ref = `insert into public.unit_refs (id, bucket, title, version, status, owner, repo_path, commit_sha, supersedes) values (${sql(unit.id)}, ${sql(unit.bucket)}, ${sql(unit.title)}, 1, 'draft', ${sql(OWNER)}, ${sql(unit.repoPath)}, null, null) on conflict (id) do nothing;`;
+    const ref = `insert into public.unit_refs (id, unit_type, scope, project_id, source_id, title, version, status, owner, repo_path, commit_sha, supersedes) values (${sql(unit.id)}, ${sql(unit.unitType)}, 'project', ${sql(unit.projectId)}, ${sql(unit.sourceId)}, ${sql(unit.title)}, 1, 'draft', ${sql(OWNER)}, ${sql(unit.repoPath)}, null, null) on conflict (id) do nothing;`;
     const links = unit.entityIds.map(
       (entityId) =>
         `insert into public.unit_ref_entities (unit_id, entity_id) values (${sql(unit.id)}, ${sql(entityId)}) on conflict (unit_id, entity_id) do nothing;`,
@@ -286,7 +329,9 @@ function appendSeed(root: string, fragment: string, key: string): void {
 function renderUnit(input: {
   id: string;
   title: string;
-  bucket: "conversations" | "decisions";
+  type: TypeCode;
+  projectId: string;
+  sourceId: string;
   entities: string[];
   body: string;
 }): string {
@@ -294,7 +339,10 @@ function renderUnit(input: {
     {
       id: input.id,
       title: input.title,
-      bucket: input.bucket,
+      type: input.type,
+      scope: "project",
+      project: input.projectId,
+      source_id: input.sourceId,
       version: 1,
       status: "draft",
       owner: OWNER,
@@ -375,17 +423,23 @@ async function openDraftPullRequest(input: {
       if (!blobBody.sha) throw new RecallError("github_request_failed", 502);
       treeEntries.push({ path: filePath, mode: "100644", type: "blob", sha: blobBody.sha });
     }
-    const seedPath = "supabase/seed_entities.sql";
-    if (fs.existsSync(path.join(input.root, seedPath))) {
-      const seed = fs.readFileSync(path.join(input.root, seedPath), "utf8");
+    for (const extraPath of [
+      "supabase/seed_entities.sql",
+      "ontology/seed/entities.json",
+      "ontology/seed/relationships.json",
+      "_control/triage.md",
+      "INDEX.md",
+    ]) {
+      if (!fs.existsSync(path.join(input.root, extraPath))) continue;
+      const content = fs.readFileSync(path.join(input.root, extraPath), "utf8");
       const blob = await github(input, `/repos/${input.repository}/git/blobs`, {
         method: "POST",
-        body: JSON.stringify({ content: seed, encoding: "utf-8" }),
+        body: JSON.stringify({ content, encoding: "utf-8" }),
       });
       if (!blob.ok) throw new RecallError("github_request_failed", 502);
       const blobBody = (await blob.json()) as { sha?: string };
       if (!blobBody.sha) throw new RecallError("github_request_failed", 502);
-      treeEntries.push({ path: seedPath, mode: "100644", type: "blob", sha: blobBody.sha });
+      treeEntries.push({ path: extraPath, mode: "100644", type: "blob", sha: blobBody.sha });
     }
     const tree = await github(input, `/repos/${input.repository}/git/trees`, {
       method: "POST",

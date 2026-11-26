@@ -86,18 +86,20 @@ Admins see the tenant. Reviewers see assigned projects, source transcripts for t
 
 A second slice stores governed writing in git and entity rows for a fictional company, Hearthline Instruments. The repository name, the Vercel project, and the Enterprise Mind title are unchanged.
 
+- `INDEX.md` is routing only. `npm run build-unit-index` regenerates it and the gitignored ledger `_control/ledgers/unit-index.json`.
 - `ontology/entities/*.schema.json` declares each entity type, its `x-source-of-truth` (`git`, `db`, or `both`), and the one-way `x-mirror-direction` a later sync would use. That sync is not built.
-- `ontology/relationships.yaml` lists the legal edges. Instance rows live in `ontology/seed/`.
-- `units/<bucket>/<id>/UNIT.md` is a knowledge unit. Buckets are architecture, design, conversations, decisions, and procedures. Procedures are SOPs and how-tos. Git history is the version log.
+- `ontology/schemas/` holds the unit and composition schemas. `ontology/relationships.yaml` lists the legal edges. Instance rows live in `ontology/seed/`.
+- `projects/{id}/units/{ProjectID}-{SourceIDShort}-{TypeCode}-{Seq}.md` is one knowledge unit. Type codes are `DEC`, `REQ`, `ARC`, `DS`, `BR`, `WF`, and `OQ`. `scope` is `project` or `company`. A company tag does not move the file. Git history is the version log.
+- `core/value-flow/{market,acquire,deliver,retain}`, `core/enable`, and `core/govern` describe company-scope routes. They do not hold unit files.
+- `_control/` holds run state, triage, ledgers, change logs, and id migrations.
 - `comps/<id>/COMP.md` groups units for one reading.
-- `npm run validate-units` checks frontmatter, entity ids, and a name denylist. GitHub Actions runs the same command.
-- `npm run build-unit-index` writes `units/index.json`. That file is generated and gitignored. `npm run dev` and `npm run build` regenerate it.
-- `/catalog` and `/catalog/[bucket]/[id]` are static pages. `/entities` reads Supabase when `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` are set, and otherwise renders the seed JSON.
-- `supabase/migrations/20261123120000_entities.sql` is the entity schema. It stores a `unit_refs` path and commit SHA and does not store transcripts. Leave `supabase/migrations/20261108120000_core.sql` unapplied. Both files create `public.projects`, so they do not coexist.
+- `npm run validate-units` checks frontmatter, the type code in the id, scope, supersedes, one unit per file, entity ids, and a name denylist. GitHub Actions runs the same command.
+- `/catalog` and `/catalog/[id]` are static pages. `/entities` reads Supabase when `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` are set, and otherwise renders the seed JSON.
+- Apply local migrations in timestamp order: `20261108120000_core.sql`, `20261123120000_entities.sql`, `20261124120000_meetings.sql`, then `20261125120000_admin_tokens.sql`. `public.projects` is the pilot table. Catalog projects live in `public.entity_projects`. Do not apply these files to a hosted project.
 
-Apply the new migration only to a local database. Do not apply it to the hosted project.
+`20261108120000_core.sql` still creates `public.transcripts` and, when Storage exists, a private `transcript-payloads` bucket. That contradicts zero retention. Those objects are unchanged here.
 
-`supabase/migrations/20261124120000_meetings.sql` comes after the entities migration. It adds meetings, bots, hash-only meeting artifacts, and action items. `calendar_event_id` is reserved for a later calendar slice and is null here. Apply it locally, then `supabase/seed_entities.sql`, then `supabase/seed_meetings.sql`. Do not apply it to a hosted project, and do not apply it on top of `20261108120000_core.sql`.
+`supabase/migrations/20261124120000_meetings.sql` adds meetings, bots, hash-only meeting artifacts, and action items. `calendar_event_id` is reserved for a later calendar slice and is null here. Apply the chain locally, then `supabase/seed.sql`, `supabase/seed_entities.sql`, and `supabase/seed_meetings.sql`. Do not apply it to a hosted project.
 
 ## Meeting bot
 
@@ -105,7 +107,7 @@ Apply the new migration only to a local database. Do not apply it to the hosted 
 
 Recall posts lifecycle events to `/api/webhooks/recall`. The route checks the raw body with HMAC-SHA256 over `id.timestamp.rawBody`, accepts `webhook-*` and `svix-*` headers, and rejects timestamps outside five minutes. It returns 200 before it fetches anything. It does not poll bot status.
 
-On `transcript.done` the job reads `GET /api/v1/transcript/{id}/` from the regional origin, downloads `data.download_url` only when the host is listed in `RECALL_DOWNLOAD_HOSTS`, and runs the rule-based extractor. It writes a conversations unit and a decisions unit, plus action items and a decision row. It then discards the transcript. The artifact row keeps a sha256, a segment count, speaker labels, and pointers. The same transcript hash does not write a second set of units.
+On `transcript.done` the job reads `GET /api/v1/transcript/{id}/` from the regional origin, downloads `data.download_url` only when the host is listed in `RECALL_DOWNLOAD_HOSTS`, and runs the rule-based extractor. It writes one source-summary unit and one decision unit per decision under `projects/{id}/units/`. A claim that does not become a unit is appended to `_control/triage.md` without transcript text. It then discards the transcript. The artifact row keeps a sha256, a segment count, speaker labels, and pointers. The same transcript hash does not write a second set of units.
 
 When `GITHUB_TOKEN` or `FLUX_GITHUB_TOKEN` is set (and `GITHUB_REPOSITORY` or a GitHub origin remote identifies the repo), those units open a draft pull request. Otherwise they are written to the working tree.
 
@@ -115,7 +117,7 @@ Subscribe the webhook to `bot.joining_call`, `bot.in_waiting_room`, `bot.in_call
 
 `/admin` lists the fictional Hearthline Instruments workspace, its subscribers, the subscription stub, meeting bots, and API token metadata. The page checks `FLUX_ADMIN_SECRET` on the server. If that variable is missing, the page lists nothing. A signed-in pilot user is not enough.
 
-`supabase/migrations/20261125120000_admin_tokens.sql` comes after the meetings migration. It adds workspaces, subscribers, admin roles, `api_tokens`, and `audit_log`. Apply it locally after `seed_meetings.sql`, then apply `supabase/seed_admin.sql`. Do not apply it to a hosted project, and do not apply it on top of `20261108120000_core.sql`.
+`supabase/migrations/20261125120000_admin_tokens.sql` comes after the meetings migration. It adds workspaces, subscribers, admin roles, `api_tokens`, and `audit_log`. Apply it locally as the fourth migration, then apply `supabase/seed_admin.sql` after the meeting seed. Do not apply it to a hosted project.
 
 A personal token looks like `flux_` plus 32 bytes of base64url. Creating one returns that string once. The database stores `HMAC-SHA256(FLUX_TOKEN_PEPPER, token)` as hex, plus the prefix, the last four characters, scopes, expiry, revocation, and `last_used_at`. The hash is not readable by the `anon` or `authenticated` roles. Owners can select their own metadata.
 

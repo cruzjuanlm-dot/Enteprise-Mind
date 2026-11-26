@@ -41,8 +41,8 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# Generated from units/*/UNIT.md. Rebuild with npm run build-unit-index.
-/units/index.json
+# Generated catalog ledger. Root INDEX.md is committed. Rebuild with npm run build-unit-index.
+/_control/ledgers/unit-index.json
 
 # Local name denylist. Never commit this file.
 .privacy-denylist.txt

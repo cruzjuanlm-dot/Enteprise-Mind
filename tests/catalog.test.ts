@@ -5,7 +5,6 @@ import path from "node:path";
 import test from "node:test";
 import { deniedTerms } from "../src/lib/denylist";
 import { loadEntities } from "../src/lib/entity-read";
-import { BUCKETS } from "../src/lib/frontmatter";
 import { loadDeclarations } from "../src/lib/ontology";
 import { collectUnits } from "../src/lib/unit-index";
 import { validateRepository, validateUnitFile } from "../src/lib/validate-content";
@@ -28,9 +27,12 @@ test("validator rejects a bad unit fixture", () => {
   fs.writeFileSync(
     bad,
     `---
-id: bad-example
+id: kilnwatch-seed-DEC-099
 title: Bad example
-bucket: decisions
+type: DEC
+scope: project
+project: project.kilnwatch
+source_id: source.seed
 version: 1
 status: accepted
 owner: person-role.catalog-editor
@@ -43,7 +45,7 @@ field notes stay allowed.
 Feld Entertainment is not part of this catalog.
 `,
   );
-  const schema = JSON.parse(fs.readFileSync(path.join(root, "schema/unit.schema.json"), "utf8"));
+  const schema = JSON.parse(fs.readFileSync(path.join(root, "ontology/schemas/unit.schema.json"), "utf8"));
   const issues = validateUnitFile(bad, {
     schema,
     entityIds: new Set(["person-role.catalog-editor"]),
@@ -56,9 +58,12 @@ Feld Entertainment is not part of this catalog.
   fs.writeFileSync(
     invalid,
     `---
-id: bad-example
+id: kilnwatch-seed-DEC-099
 title: Bad example
-bucket: decisions
+type: DEC
+scope: project
+project: project.kilnwatch
+source_id: source.seed
 version: 1
 status: nope
 owner: person-role.catalog-editor
@@ -73,13 +78,19 @@ Clean body.
   assert.ok(schemaIssues.some((issue) => issue.message.includes("status")));
 });
 
-test("the Hearthline catalog validates and covers every bucket", () => {
+test("the Hearthline catalog validates and keeps the migrated sample units", () => {
   const issues = validateRepository(root);
   assert.deepEqual(issues, []);
   const units = collectUnits(root);
   assert.deepEqual(
-    BUCKETS.map((bucket) => units.filter((unit) => unit.bucket === bucket).length),
-    BUCKETS.map(() => 1),
+    units.map((unit) => [unit.id, unit.type, unit.scope, unit.project]),
+    [
+      ["kilnwatch-handoff-BR-001", "BR", "project", "project.kilnwatch"],
+      ["kilnwatch-seed-ARC-001", "ARC", "project", "project.kilnwatch"],
+      ["kilnwatch-seed-DEC-001", "DEC", "project", "project.kilnwatch"],
+      ["kilnwatch-seed-DS-001", "DS", "project", "project.kilnwatch"],
+      ["kilnwatch-seed-WF-001", "WF", "project", "project.kilnwatch"],
+    ],
   );
 });
 
@@ -112,7 +123,7 @@ test("entity source of truth is the schema declaration", () => {
 test("entities fall back to seed JSON when Supabase is unset or unreadable", async () => {
   const missing = await loadEntities({
     root,
-    env: { NEXT_PUBLIC_SUPABASE_URL: "", NEXT_PUBLIC_SUPABASE_ANON_KEY: "" },
+    env: { NODE_ENV: "test", NEXT_PUBLIC_SUPABASE_URL: "", NEXT_PUBLIC_SUPABASE_ANON_KEY: "" },
   });
   assert.equal(missing.source, "seed");
   assert.ok(missing.entities.some((entity) => entity.id === "system.kiln-ledger"));
@@ -120,6 +131,7 @@ test("entities fall back to seed JSON when Supabase is unset or unreadable", asy
   const failed = await loadEntities({
     root,
     env: {
+      NODE_ENV: "test",
       NEXT_PUBLIC_SUPABASE_URL: "https://hearthline.supabase.co",
       NEXT_PUBLIC_SUPABASE_ANON_KEY: "public-anon-test",
     },
@@ -134,7 +146,7 @@ test("entities fall back to seed JSON when Supabase is unset or unreadable", asy
 
 test("catalog pages are static and do not read the session", () => {
   const unitPage = fs.readFileSync(
-    path.join(root, "src/app/(catalog)/catalog/[bucket]/[id]/page.tsx"),
+    path.join(root, "src/app/(catalog)/catalog/[id]/page.tsx"),
     "utf8",
   );
   const catalogPage = fs.readFileSync(path.join(root, "src/app/(catalog)/catalog/page.tsx"), "utf8");

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://enterprise-mind.local/schema/comp.schema.json",
+  "$id": "https://enterprise-mind.local/ontology/schemas/comp.schema.json",
   "title": "Composition",
   "description": "A reading that points at knowledge units and entity ids. Git history is the version log.",
   "type": "object",
@@ -35,7 +35,7 @@
       "minItems": 1,
       "items": {
         "type": "string",
-        "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*-(DEC|REQ|ARC|DS|BR|WF|OQ)-[0-9]{3}$"
       }
     },
     "entities": {

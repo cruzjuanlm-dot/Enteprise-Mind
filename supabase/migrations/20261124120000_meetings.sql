@@ -1,6 +1,7 @@
 -- Flux meeting bot tables. Apply only to a local database, after
--- 20261123120000_entities.sql. Do not apply this file to a hosted project.
--- Do not apply it on top of 20261108120000_core.sql.
+-- 20261108120000_core.sql and 20261123120000_entities.sql.
+-- Do not apply this file to a hosted project.
+-- project_id points at public.entity_projects, not the pilot public.projects table.
 --
 -- Zero retention: meeting_artifacts stores a hash, a segment count, speaker
 -- labels, and pointers. It has no transcript text, recording bytes, or download URL.
@@ -31,7 +32,7 @@ create table public.action_items (
   id text primary key,
   name text not null,
   summary text not null,
-  project_id text not null references public.projects (id),
+  project_id text not null references public.entity_projects (id),
   meeting_id text,
   owner_role_id text references public.person_roles (id),
   state text not null,
@@ -45,7 +46,7 @@ create table public.action_items (
 create table public.meetings (
   id text primary key,
   title text not null,
-  project_id text references public.projects (id),
+  project_id text references public.entity_projects (id),
   calendar_event_id text,
   decision_id text references public.decisions (id),
   meeting_url text,

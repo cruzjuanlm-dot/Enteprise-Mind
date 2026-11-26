@@ -1,7 +1,10 @@
 ---
-id: studio-firing-sheet
+id: kilnwatch-seed-DS-001
 title: Studio firing sheet
-bucket: design
+type: DS
+scope: project
+project: project.kilnwatch
+source_id: source.seed
 version: 1
 status: accepted
 owner: person-role.catalog-editor

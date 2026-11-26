@@ -1,7 +1,10 @@
 ---
-id: bench-handoff-notes
+id: kilnwatch-handoff-BR-001
 title: Bench handoff for the calibration check
-bucket: conversations
+type: BR
+scope: project
+project: project.kilnwatch
+source_id: source.handoff
 version: 1
 status: accepted
 owner: person-role.studio-lead

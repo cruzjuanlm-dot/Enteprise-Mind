@@ -1,7 +1,10 @@
 ---
-id: calibration-check
+id: kilnwatch-seed-WF-001
 title: Calibration check procedure
-bucket: procedures
+type: WF
+scope: project
+project: project.kilnwatch
+source_id: source.seed
 version: 1
 status: accepted
 owner: person-role.calibration-owner
