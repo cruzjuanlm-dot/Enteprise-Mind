@@ -20,6 +20,11 @@ function asDate(iso: string): Date {
   return new Date(iso);
 }
 
+export function formatDay(iso: string): string {
+  const date = asDate(iso);
+  return `${date.getUTCDate()} ${MONTHS[date.getUTCMonth()]} ${date.getUTCFullYear()}`;
+}
+
 export function formatUtcDate(iso: string): string {
   const date = asDate(iso);
   return `${date.getUTCDate()} ${MONTHS[date.getUTCMonth()]} ${date.getUTCFullYear()} (UTC)`;

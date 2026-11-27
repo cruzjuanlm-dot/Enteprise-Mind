@@ -28,7 +28,7 @@ export const stations: Station[] = [
     id: "pause",
     name: "Big Pause",
     group: "turn",
-    text: "The sponsor and the steward stop new AI and enterprise projects and learn the language first. The pause is a signed decision. Skipping it puts debt into the work before there is a register to put it on. The ring is broken here on purpose.",
+    text: "The sponsor and the steward stop new AI and enterprise projects and learn the language first. The pause is a signed decision. Skipping it puts debt into the work before there is a register to put it on. The ring stops at this gap on purpose.",
   },
   {
     id: "organized",

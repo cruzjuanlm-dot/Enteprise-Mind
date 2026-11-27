@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { formatUtcStamp } from "@/lib/dates";
+import { formatDay } from "@/lib/dates";
 import { site } from "@/lib/site";
 
 export function SiteFooter() {
@@ -15,7 +15,7 @@ export function SiteFooter() {
           {" · "}
           {site.status}
           {" · Updated "}
-          {formatUtcStamp(site.updated)}
+          <span className="nums">{formatDay(site.updated)}</span>
         </p>
       </div>
     </footer>

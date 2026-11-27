@@ -1,19 +1,21 @@
 import Link from "next/link";
 import { checkCredential } from "@/app/verify/actions";
 import { CheckButton } from "@/components/check-button";
+import { LookupAnnouncement } from "@/components/lookup-announcement";
 import { PageHeader } from "@/components/page-header";
+import { StatusMark } from "@/components/status-mark";
 import { formatUtcDate } from "@/lib/dates";
 import type { VerifyView } from "@/lib/verify";
 
 const issued = [
-  { href: "/verify/FLX-P-1042", id: "FLX-P-1042", label: "Active" },
-  { href: "/verify/FLX-S-1007", id: "FLX-S-1007", label: "Expired" },
-  { href: "/verify/FLX-T-1019", id: "FLX-T-1019", label: "Revoked" },
+  { href: "/verify/FLX-P-1042", id: "FLX-P-1042", kind: "active" as const },
+  { href: "/verify/FLX-S-1007", id: "FLX-S-1007", kind: "expired" as const },
+  { href: "/verify/FLX-T-1019", id: "FLX-T-1019", kind: "revoked" as const },
 ];
 
 const other = [
-  { href: "/verify/FLX-P-0000", id: "FLX-P-0000", label: "Unknown id" },
-  { href: "/verify/NOT-AN-ID", id: "NOT-AN-ID", label: "Rejected text" },
+  { href: "/verify/FLX-P-0000", id: "FLX-P-0000", kind: "unknown" as const },
+  { href: "/verify/NOT-AN-ID", id: "NOT-AN-ID", kind: "rejected" as const },
 ];
 
 export function VerifyScreen({ result }: { result: VerifyView }) {
@@ -47,7 +49,11 @@ export function VerifyScreen({ result }: { result: VerifyView }) {
           </p>
         </div>
       </form>
-      <div aria-live="polite">{resultBody(result)}</div>
+      {result.kind === "empty" ? (
+        resultBody(result)
+      ) : (
+        <LookupAnnouncement message={announcementFor(result)}>{resultBody(result)}</LookupAnnouncement>
+      )}
       <section className="stack-tight" aria-labelledby="samples-title">
         <h2 id="samples-title">Sample lookups</h2>
         <p className="note">Three fictional credentials, plus an unknown id and a rejected string.</p>
@@ -56,7 +62,7 @@ export function VerifyScreen({ result }: { result: VerifyView }) {
             <li key={item.id}>
               <Link href={item.href}>
                 <span className="mono">{item.id}</span>
-                <span>{item.label}</span>
+                <StatusMark kind={item.kind} />
               </Link>
             </li>
           ))}
@@ -66,7 +72,7 @@ export function VerifyScreen({ result }: { result: VerifyView }) {
             <li key={item.id}>
               <Link href={item.href}>
                 <span className="mono">{item.id}</span>
-                <span>{item.label}</span>
+                <StatusMark kind={item.kind} />
               </Link>
             </li>
           ))}
@@ -106,6 +112,14 @@ function ledeFor(result: VerifyView): string {
   return "This mark is revoked. It stays on the public record, and it is not current.";
 }
 
+function announcementFor(result: VerifyView): string {
+  if (result.kind === "error") return `Rejected. ${clip(result.id)} is not an id this register can check.`;
+  if (result.kind === "unknown") return `Unknown. No credential is filed under ${result.id}.`;
+  if (result.kind !== "found") return "";
+  const status = result.displayStatus === "active" ? "Active" : result.displayStatus === "expired" ? "Expired" : "Revoked";
+  return `${status}. ${result.credential.id}, ${result.credential.holder}, ${result.tierName ?? "tier not in the catalog"}. Issued ${formatUtcDate(result.credential.issued)}. Expires ${formatUtcDate(result.credential.expires)}.`;
+}
+
 function resultBody(result: VerifyView) {
   if (result.kind === "empty") {
     return (
@@ -117,8 +131,10 @@ function resultBody(result: VerifyView) {
   }
   if (result.kind === "error") {
     return (
-      <div className="state state-error" role="alert">
-        <h2>Rejected</h2>
+      <div className="state state-error">
+        <h2 className="status-heading">
+          <StatusMark kind="rejected" />
+        </h2>
         <p>
           <span className="mono">{clip(result.id)}</span> is not an id this register can check.
         </p>
@@ -128,7 +144,9 @@ function resultBody(result: VerifyView) {
   if (result.kind === "unknown") {
     return (
       <div className="state state-unknown">
-        <h2>Unknown</h2>
+        <h2 className="status-heading">
+          <StatusMark kind="unknown" />
+        </h2>
         <p>
           No credential is filed under <span className="mono">{result.id}</span>.
         </p>
@@ -138,22 +156,24 @@ function resultBody(result: VerifyView) {
   const { credential, displayStatus, tierName, tierSlug } = result;
   const tone =
     displayStatus === "active" ? "state-active" : displayStatus === "expired" ? "state-expired" : "state-revoked";
-  const statusWord =
-    displayStatus === "active" ? "Active" : displayStatus === "expired" ? "Expired" : "Revoked";
   return (
     <div className={`state ${tone}`}>
-      <h2>{statusWord}</h2>
+      <h2 className="status-heading">
+        <StatusMark kind={displayStatus} />
+      </h2>
       <dl className="meta-grid">
         <dt>Holder</dt>
         <dd>{credential.holder}</dd>
         <dt>Tier</dt>
         <dd>{tierName ?? "Not in the catalog"}</dd>
         <dt>Issued</dt>
-        <dd>{formatUtcDate(credential.issued)}</dd>
+        <dd className="nums">{formatUtcDate(credential.issued)}</dd>
         <dt>Expires</dt>
-        <dd>{formatUtcDate(credential.expires)}</dd>
+        <dd className="nums">{formatUtcDate(credential.expires)}</dd>
         <dt>Status</dt>
-        <dd>{statusWord}</dd>
+        <dd>
+          <StatusMark kind={displayStatus} />
+        </dd>
       </dl>
       {displayStatus === "expired" ? (
         <p>The term ended on {formatUtcDate(credential.expires)}. Renewal is not automatic.</p>

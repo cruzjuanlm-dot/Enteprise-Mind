@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { PageHeader } from "@/components/page-header";
-import { StatusLabel } from "@/components/status-label";
 import { assertCatalog, getCourse, getTiers } from "@/lib/catalog";
 
 export const metadata: Metadata = {
@@ -14,27 +13,28 @@ export default function CertificationPage() {
   return (
     <>
       <PageHeader
-        kicker="Marks"
+        kicker="Marks · Proposed"
         title="Certification"
         lede="Five proposed tiers. Fees to be announced. The Certification Board issues the mark. A trainer does not. Nothing on this site is a credential you can hold."
       />
-      <p>
-        <StatusLabel tone="info">Proposed</StatusLabel>
-      </p>
       <ul className="tier-list">
         {tiers.map((tier) => {
           const course = getCourse(tier.courseSlug);
           return (
             <li key={tier.slug}>
-              <div className="stack-tight">
-                <h2>
-                  <Link href={`/certification/${tier.slug}`}>{tier.name}</Link>
-                </h2>
-                <p>{tier.audience}</p>
-                <p className="row-meta">
-                  {course ? course.title : "Course missing from the catalog"} · {tier.term}
-                </p>
+              <div className="tier-head">
+                <h2>{tier.name}</h2>
+                <Link className="details-link" href={`/certification/${tier.slug}`}>
+                  Details
+                </Link>
               </div>
+              <dl className="aligned-meta">
+                <dt>Level</dt>
+                <dd>{course ? course.level : "Missing"}</dd>
+                <dt>Renewal</dt>
+                <dd className="nums">{tier.term}</dd>
+              </dl>
+              <p>{tier.audience}</p>
             </li>
           );
         })}

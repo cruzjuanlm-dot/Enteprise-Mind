@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 };
 
 const figureLabel =
-  "A broken ring. Knowledge moves from outside the organization, through the Big Pause, into organized form, through a value session, and on to actionable value. Velocity sits at the center, in days. Enterprise debt cuts across the turn.";
+  "Value cycle. The ring runs from Outside knowledge, through a gap marked Big Pause, to Organized, Value session, and Actionable value. Velocity, in the center, is average days per cycle. Enterprise debt crosses the ring.";
 
 export default function HomePage() {
   return (
@@ -17,23 +17,18 @@ export default function HomePage() {
         <p className="kicker">
           Flux standard v{site.version} · {site.status}
         </p>
-        <h1 className="promise">
-          Knowledge from outside an organization becomes a record someone can act on, and the
-          people who do that work can be certified.
+        <h1 className="display">
+          Flux is an open standard for turning outside knowledge into records a team can act on.
+          Learn it, get certified, or implement it.
         </h1>
         <p className="lede">
-          The text of the standard is open. The marks are controlled. The Flux tool is the
-          register and the proof of concept, not the asset.
+          Anyone can read the text. A certification mark is issued and checked by Flux, not by a
+          piece of software. The Flux tool is a working register. The standard is the durable part.
         </p>
       </header>
       <section className="stack-tight" aria-labelledby="cycle-title">
         <h2 id="cycle-title">The value cycle</h2>
         <ValueCycleFigure active={null} label={figureLabel} />
-        <p className="lede">
-          1 Outside knowledge. 2 Big Pause, the break in the ring. 3 Organized. 4 Value session.
-          5 Actionable value. Velocity is the days at the center. Enterprise debt is the line
-          that cuts the turn.
-        </p>
         <Link className="text-target" href="/value-cycle">
           Explain each part
         </Link>
