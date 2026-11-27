@@ -11,16 +11,14 @@ export default async function PilotLayout({ children }: Readonly<{ children: Rea
   const { actor, mode, repo } = await getContext();
   const membership = actor?.memberships[0];
   const tenant = membership ? await repo.getTenant(membership.tenantId) : null;
-  const scope = tenant && membership ? `${tenant.name} · ${roleLabel(membership.role)}` : "Transcript review";
+  const scope = tenant && membership ? `${tenant.name} · ${roleLabel(membership.role)}` : "Hearthline Instruments · Demo";
   const note =
     mode === "memory"
-      ? actor
-        ? "Demo fixture session. Records last until this process restarts."
-        : "Supabase is not connected."
+      ? "Demo session. Approved units last until this process restarts. No model is called."
       : null;
 
   return (
-    <AppFrame showNav={Boolean(actor)} scope={scope} note={note}>
+    <AppFrame showNav signedIn={Boolean(actor)} scope={scope} note={note}>
       <Suspense fallback={<LoadingRecords />}>
         <PendingNavigation>{children}</PendingNavigation>
       </Suspense>

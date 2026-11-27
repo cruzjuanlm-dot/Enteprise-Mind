@@ -6,10 +6,12 @@ export function PendingForm({
   action,
   children,
   className,
+  encType,
 }: {
   action: string;
   children: ReactNode;
   className?: string;
+  encType?: "application/x-www-form-urlencoded" | "multipart/form-data";
 }) {
   const [pending, setPending] = useState(false);
   const lock = useRef(false);
@@ -24,7 +26,7 @@ export function PendingForm({
   }
 
   return (
-    <form action={action} method="post" className={className} onSubmit={onSubmit} aria-busy={pending || undefined}>
+    <form action={action} method="post" className={className} encType={encType} onSubmit={onSubmit} aria-busy={pending || undefined}>
       {children}
     </form>
   );

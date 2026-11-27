@@ -25,6 +25,8 @@ npm run dev
 
 If the Supabase variables are empty, the app uses an in-memory stand-in and a local sign-in screen. That stand-in is for development only. It is refused when `VERCEL_ENV=production`.
 
+Open `http://localhost:3000` with no secrets. The Hearthline Instruments demo is the knowledge tree. Search is `/search`. Paste or upload a transcript at `/compile`. The rules reader proposes units and does not keep the transcript. Approve, edit, or reject them at `/proposals`. An approved unit shows in the tree. Promote sets `scope: company` and a `domain`. Meetings at `/meetings` walks a mocked Recall sequence. Admin at `/admin` lists demo token metadata and settings when `FLUX_ADMIN_SECRET` is unset. The pilot queue is still at `/review` after a fixture sign-in.
+
 The local sign-in fixtures are `reviewer@local.test`, `member@local.test`, `admin@local.test`, and `outsider@local.test`. They are not accounts and they disappear when Supabase Auth is configured.
 
 Apply `supabase/migrations/20261108120000_core.sql` to the Supabase project, then `supabase/seed.sql` for the fictional Hearthline Instruments tenant, Field Systems department, and Sensor firmware review project. After a real user exists in Supabase Auth, insert a `tenant_memberships` row and, unless the role is admin, a `project_memberships` row. The seed file shows the columns. Do not put keys or passwords in that file.
@@ -89,13 +91,13 @@ A second slice stores governed writing in git and entity rows for a fictional co
 - `INDEX.md` is routing only. `npm run build-unit-index` regenerates it and the gitignored ledger `_control/ledgers/unit-index.json`.
 - `ontology/entities/*.schema.json` declares each entity type, its `x-source-of-truth` (`git`, `db`, or `both`), and the one-way `x-mirror-direction` a later sync would use. That sync is not built.
 - `ontology/schemas/` holds the unit and composition schemas. `ontology/relationships.yaml` lists the legal edges. Instance rows live in `ontology/seed/`.
-- `projects/{id}/units/{ProjectID}-{SourceIDShort}-{TypeCode}-{Seq}.md` is one knowledge unit. Type codes are `DEC`, `REQ`, `ARC`, `DS`, `BR`, `WF`, and `OQ`. `scope` is `project` or `company`. A company tag does not move the file. Git history is the version log.
+- `projects/{id}/units/{ProjectID}-{SourceIDShort}-{TypeCode}-{Seq}.md` is one knowledge unit. Type codes are `DEC`, `REQ`, `ARC`, `DS`, `BR`, `WF`, and `OQ`. `scope` is `project` or `company`. A company tag does not move the file. Company scope also sets `domain` (`market`, `acquire`, `deliver`, `retain`, `enable`, or `govern`), and the index lists that unit under the matching core route. Git history is the version log.
 - `core/value-flow/{market,acquire,deliver,retain}`, `core/enable`, and `core/govern` describe company-scope routes. They do not hold unit files.
 - `_control/` holds run state, triage, ledgers, change logs, and id migrations.
 - `comps/<id>/COMP.md` groups units for one reading.
-- `npm run validate-units` checks frontmatter, the type code in the id, scope, supersedes, one unit per file, entity ids, and a name denylist. GitHub Actions runs the same command.
+- `npm run validate-units` checks frontmatter, the type code in the id, scope, domain on company units, acceptance on requirements, one unit per file, `PROJECT_CONTEXT.md`, entity ids, transcript-shaped text, and a name denylist. GitHub Actions runs the same command.
 - `/catalog` and `/catalog/[id]` are static pages. `/entities` reads Supabase when `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` are set, and otherwise renders the seed JSON.
-- Apply local migrations in timestamp order: `20261108120000_core.sql`, `20261123120000_entities.sql`, `20261124120000_meetings.sql`, then `20261125120000_admin_tokens.sql`. `public.projects` is the pilot table. Catalog projects live in `public.entity_projects`. Do not apply these files to a hosted project.
+- Apply local migrations in timestamp order: `20261108120000_core.sql`, `20261123120000_entities.sql`, `20261124120000_meetings.sql`, `20261125120000_admin_tokens.sql`, then `20261126120000_unit_refs_projection.sql`. `public.projects` is the pilot table. Catalog projects live in `public.entity_projects`. Do not apply these files to a hosted project.
 
 `20261108120000_core.sql` still creates `public.transcripts` and, when Storage exists, a private `transcript-payloads` bucket. That contradicts zero retention. Those objects are unchanged here.
 
