@@ -1,0 +1,91 @@
+{
+  "phases": [
+    {
+      "slug": "big-pause",
+      "number": 1,
+      "name": "Big Pause",
+      "summary": "Stop, learn, discover, and agree a common language before any AI or enterprise project.",
+      "work": "The organization does not start the project. The sponsor and the steward learn the language, name what they do not yet agree, and sign a decision that the pause is in force. The signature is the artifact. A kickoff is not.",
+      "signedBy": "Executive sponsor and organizational steward.",
+      "artifact": "Pause decision record",
+      "downloads": [
+        {
+          "href": "/worksheets/pause-decision-record.md",
+          "label": "Download the pause decision record"
+        }
+      ]
+    },
+    {
+      "slug": "big-learn",
+      "number": 2,
+      "name": "Big Learn",
+      "summary": "A common language, the instruments, the practices, the value cycle, enterprise debt, and value sessions.",
+      "work": "People learn the same terms and the same instruments. The steward writes a learner map: who needs the language only, who will sit Foundations, who will keep the registers. Big Learn ends in a value cycle certification. In this prototype that certification is the Practitioner tier, after Foundations. Proposed.",
+      "signedBy": "Organizational steward. The sponsor sees the map.",
+      "artifact": "Learner map",
+      "downloads": [
+        {
+          "href": "/worksheets/learner-map.md",
+          "label": "Download the learner map"
+        }
+      ]
+    },
+    {
+      "slug": "discovery",
+      "number": 3,
+      "name": "Discovery",
+      "summary": "Build an asset register and a debt register, capture in value sessions, score readiness, and produce a board report.",
+      "work": "The steward opens two registers. The asset register lists governed units the organization means to keep. The debt register lists knowledge the organization depends on that is not organized, each with an owner and a disposition. Capture happens in value sessions, not in a side spreadsheet. Readiness is five scores. The board report uses those scores and the register counts.",
+      "signedBy": "Organizational steward, for the registers. Executive sponsor, for the board report.",
+      "artifact": "Asset register, debt register, and readiness radar",
+      "downloads": [
+        {
+          "href": "/worksheets/asset-register.md",
+          "label": "Download the asset register"
+        },
+        {
+          "href": "/worksheets/debt-register.md",
+          "label": "Download the debt register"
+        },
+        {
+          "href": "/worksheets/readiness-radar.md",
+          "label": "Download the readiness worksheet"
+        }
+      ]
+    },
+    {
+      "slug": "value-sessions",
+      "number": 4,
+      "name": "Value sessions",
+      "summary": "The meeting, redefined: it captures typed knowledge that can feed a later workflow.",
+      "work": "A value session is not a status meeting. People capture typed knowledge, such as a risk, a decision, and the other unit types, onto a unit-capture card. A session that changes no unit did not move the cycle. The typed unit is what a later workflow can read. The conversation itself is not the record.",
+      "signedBy": "The session owner, named on the agenda before the session starts.",
+      "artifact": "Session agenda and unit-capture card",
+      "downloads": [
+        {
+          "href": "/worksheets/session-agenda.md",
+          "label": "Download the session agenda"
+        },
+        {
+          "href": "/worksheets/unit-capture-card.md",
+          "label": "Download the unit-capture card"
+        }
+      ]
+    },
+    {
+      "slug": "board-report",
+      "number": 5,
+      "name": "Board report and velocity",
+      "summary": "Report sessions held, the registers, readiness, certified people, and velocity from knowledge to value.",
+      "work": "The sponsor receives one page. It states how many value sessions were held, how full each register is, the five readiness scores, how many people hold a current mark, and velocity: days from knowledge arriving to an accepted unit. The page does not replace the registers. It points at them.",
+      "signedBy": "Executive sponsor, with the steward.",
+      "artifact": "Board report",
+      "downloads": [
+        {
+          "href": "/worksheets/board-report.md",
+          "label": "Download the board report sample"
+        }
+      ]
+    }
+  ]
+}
