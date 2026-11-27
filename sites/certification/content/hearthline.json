@@ -1,0 +1,26 @@
+{
+  "organization": "Hearthline Instruments",
+  "department": "Field Systems",
+  "project": "Kilnwatch",
+  "projectId": "project.kilnwatch",
+  "asOf": "2026-11-26T00:00:00Z",
+  "sessionsHeld": 4,
+  "assetRegisterRows": 5,
+  "debtRegisterRows": 2,
+  "certifiedPeople": 1,
+  "velocityDays": 18,
+  "readiness": [
+    { "axis": "Common language", "score": 4 },
+    { "axis": "Asset register", "score": 4 },
+    { "axis": "Debt register", "score": 2 },
+    { "axis": "Value sessions", "score": 3 },
+    { "axis": "Certified people", "score": 2 }
+  ],
+  "notes": {
+    "assets": "Five accepted units under projects/kilnwatch/units/.",
+    "debt": "Glaze Notebook is named and is not on the path. The learner map is not signed.",
+    "certified": "One active public credential in this prototype: FLX-P-1042, Mara Ellison, Practitioner.",
+    "velocity": "Sample median, in days, from arrival of knowledge to an accepted unit. Not computed from the files.",
+    "sessions": "Sample count for the board report. The governed handoff is kilnwatch-handoff-BR-001. The figure is not a git tally."
+  }
+}

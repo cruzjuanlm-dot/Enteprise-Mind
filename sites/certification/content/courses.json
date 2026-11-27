@@ -1,0 +1,113 @@
+{
+  "courses": [
+    {
+      "slug": "flux-language",
+      "level": "Language",
+      "title": "The Flux language",
+      "summary": "The terms a sponsor, a steward, and a practitioner share before a project starts. For the wider group that only needs the language.",
+      "modules": [
+        "Knowledge, a unit, and a comp",
+        "The value cycle in one pass",
+        "Enterprise debt and velocity",
+        "Open text and controlled marks"
+      ],
+      "outcomes": [
+        "Define knowledge, enterprise debt, velocity, and a value session in the Flux sense.",
+        "Point to where a unit lives and name its owner.",
+        "Tell the open text of the standard from a controlled mark."
+      ],
+      "hours": 6,
+      "format": "Self-paced reading, with a written check at the end.",
+      "prerequisite": null,
+      "registryId": "comp.flux-language"
+    },
+    {
+      "slug": "foundations",
+      "level": "Practitioner",
+      "title": "Foundations",
+      "summary": "How a practitioner turns a fact from outside the organization into an accepted unit. This is the course a Practitioner candidate studies.",
+      "modules": [
+        "The Big Pause, and why it comes first",
+        "Frontmatter, type, and scope",
+        "The asset register and the debt register",
+        "Value sessions and the unit types",
+        "What an examiner grades"
+      ],
+      "outcomes": [
+        "Draft a decision unit with the required frontmatter.",
+        "Place a fact on the asset register or the debt register and say why.",
+        "State velocity as a number of days, from arrival to an accepted unit."
+      ],
+      "hours": 16,
+      "format": "Cohort. Four live sessions and a practical.",
+      "prerequisite": "flux-language",
+      "registryId": "comp.foundations"
+    },
+    {
+      "slug": "steward-practice",
+      "level": "Steward",
+      "title": "Steward practice",
+      "summary": "The organizational steward's instruments: the learner map, both registers, readiness, and the board report the sponsor signs.",
+      "modules": [
+        "What the sponsor signs, and what the steward signs",
+        "The learner map",
+        "Keeping the asset register and the debt register",
+        "Readiness on five axes",
+        "The board report"
+      ],
+      "outcomes": [
+        "Build a learner map that names who takes which course.",
+        "Produce a one-page board report from register counts.",
+        "State which decisions the steward does not make alone."
+      ],
+      "hours": 12,
+      "format": "Workshop. Two days.",
+      "prerequisite": "foundations",
+      "registryId": "comp.steward-practice"
+    },
+    {
+      "slug": "master-judgment",
+      "level": "Master",
+      "title": "Master judgment",
+      "summary": "For people who already practice. The work is a judgment on a fictional project: what to accept, what to leave as debt, and when to supersede.",
+      "modules": [
+        "When a unit stays draft",
+        "Supersession and the version log",
+        "Readiness without rounding up",
+        "Reviewing a register you did not build",
+        "The practical"
+      ],
+      "outcomes": [
+        "Accept or reject a proposed unit and write the reason.",
+        "Supersede a unit without dropping the old id.",
+        "Defend each readiness score from the registers, including a low one."
+      ],
+      "hours": 20,
+      "format": "Mentored practical on a fictional project.",
+      "prerequisite": "foundations",
+      "registryId": "comp.master-judgment"
+    },
+    {
+      "slug": "train-the-trainer",
+      "level": "Trainer",
+      "title": "Train the trainer",
+      "summary": "How a licensed trainer teaches the standard without examining the people they taught. Written for consultancies that deploy the practice.",
+      "modules": [
+        "Teaching the terms without a private dialect",
+        "A cohort, a comp, and the registry id",
+        "The line between training and examination",
+        "Observed delivery",
+        "What a trainer license does not allow"
+      ],
+      "outcomes": [
+        "Deliver one Foundations module from the comp, not from a side deck.",
+        "Name who examines a cohort, and why it is not the trainer.",
+        "State the limit of the license: teaching is allowed, issuing a mark is not."
+      ],
+      "hours": 24,
+      "format": "Residency, with observed delivery.",
+      "prerequisite": "master-judgment",
+      "registryId": "comp.train-the-trainer"
+    }
+  ]
+}

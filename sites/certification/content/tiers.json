@@ -1,0 +1,112 @@
+{
+  "tiers": [
+    {
+      "slug": "language",
+      "name": "Language",
+      "audience": "The wider group that needs the shared language and does not need a professional mark.",
+      "prerequisites": ["No prior Flux course."],
+      "courseSlug": "flux-language",
+      "term": "3 years",
+      "assessment": [
+        {
+          "part": "Written check",
+          "weight": "100%",
+          "covers": "The terms in the standard: knowledge, unit, comp, velocity, enterprise debt, the Big Pause, and a value session. There is no practical."
+        }
+      ],
+      "renewal": "Three years. The holder re-reads the current text and passes the written check again. Nothing renews on its own.",
+      "status": "proposed"
+    },
+    {
+      "slug": "practitioner",
+      "name": "Practitioner",
+      "audience": "People who will write units and keep them accurate inside an organization.",
+      "prerequisites": ["The Flux language.", "Foundations."],
+      "courseSlug": "foundations",
+      "term": "3 years",
+      "assessment": [
+        {
+          "part": "Written",
+          "weight": "40%",
+          "covers": "Terms, the value cycle, unit frontmatter, and the difference between the asset register and the debt register."
+        },
+        {
+          "part": "Practical",
+          "weight": "60%",
+          "covers": "The candidate builds a small fictional project. Proposed: npm run validate-units checks structure in CI. An examiner grades judgment. The command does not grade judgment."
+        }
+      ],
+      "renewal": "Three years. The holder submits one unit accepted under the current text. A lapsed mark stays on the public record as expired.",
+      "status": "proposed"
+    },
+    {
+      "slug": "steward",
+      "name": "Steward",
+      "audience": "The organizational steward who keeps the registers, the learner map, and the board report.",
+      "prerequisites": ["An active Practitioner credential.", "Steward practice."],
+      "courseSlug": "steward-practice",
+      "term": "3 years",
+      "assessment": [
+        {
+          "part": "Registers",
+          "weight": "50%",
+          "covers": "An asset register, a debt register, and a learner map for a fictional project, each with an owner."
+        },
+        {
+          "part": "Board report",
+          "weight": "50%",
+          "covers": "A one-page report of sessions held, both registers, readiness on five axes, certified people, and velocity. Each readiness score is explained."
+        }
+      ],
+      "renewal": "Three years. The holder submits a board report signed by a sponsor in the sample or the workplace, and the Certification Board reviews it.",
+      "status": "proposed"
+    },
+    {
+      "slug": "master",
+      "name": "Master",
+      "audience": "Practitioners whose work is judgment: what to accept, what to leave as debt, and when a unit is superseded.",
+      "prerequisites": [
+        "An active Practitioner credential.",
+        "Master judgment.",
+        "Steward is not required."
+      ],
+      "courseSlug": "master-judgment",
+      "term": "3 years",
+      "assessment": [
+        {
+          "part": "Judgment file",
+          "weight": "100%",
+          "covers": "Accept or reject a set of proposed units on a fictional project. Say what stays on the debt register. Proposed: structure may be checked with npm run validate-units. The grade is the judgment."
+        }
+      ],
+      "renewal": "Three years. The holder reviews a register they did not build and records the calls. The Certification Board samples the review.",
+      "status": "proposed"
+    },
+    {
+      "slug": "trainer",
+      "name": "Trainer",
+      "audience": "Licensed trainers, including consultancies that teach a client's people and do not certify them.",
+      "prerequisites": [
+        "An active Master credential.",
+        "Train the trainer.",
+        "The Master mark alone does not license training."
+      ],
+      "courseSlug": "train-the-trainer",
+      "term": "2 years",
+      "assessment": [
+        {
+          "part": "Observed delivery",
+          "weight": "70%",
+          "covers": "Teach one module of Foundations from the comp. An examiner appointed by the Certification Board observes. The trainer does not choose the observer."
+        },
+        {
+          "part": "Separation",
+          "weight": "30%",
+          "covers": "A written account of who examines the cohort. The examiner must not be the trainer and must not be employed by the trainer's firm for that cohort."
+        }
+      ],
+      "renewal": "Two years. The license is separate from the Master mark. Renewal requires a delivery the Board observed, and a record that the trainer graded nobody from that delivery.",
+      "status": "proposed"
+    }
+  ]
+}
