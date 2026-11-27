@@ -1,6 +1,6 @@
 # Project template
 
-Copy this directory to `projects/{slug}/` when a catalog project opens. `{slug}` is the project entity id without the `project.` prefix.
+Copy this directory to `projects/{slug}/` when a catalog project opens. `{slug}` is the project entity id without the `project.` prefix. Copy `PROJECT_CONTEXT.md` with it and replace the charter, the scope boundaries, and the owners. `units/.gitkeep` holds the units directory until the first unit file arrives.
 
 Put one knowledge unit in `units/{ProjectID}-{SourceIDShort}-{TypeCode}-{Seq}.md`.
 

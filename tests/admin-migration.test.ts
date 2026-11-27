@@ -16,6 +16,7 @@ test("admin migration seeds Hearthline tokens as hashes and hides the hash", { t
   await db.exec(read("supabase/migrations/20261123120000_entities.sql"));
   await db.exec(read("supabase/migrations/20261124120000_meetings.sql"));
   await db.exec(read("supabase/migrations/20261125120000_admin_tokens.sql"));
+  await db.exec(read("supabase/migrations/20261126120000_unit_refs_projection.sql"));
   await db.exec(read("supabase/seed_entities.sql"));
   await db.exec(read("supabase/seed_meetings.sql"));
   await db.exec(read("supabase/seed_admin.sql"));

@@ -1,5 +1,6 @@
 -- Local seed for the Flux entity tables. Not applied to a hosted project.
 -- Apply 20261124120000_meetings.sql before this file. It creates action_items.
+-- Apply 20261126120000_unit_refs_projection.sql before this file. The insert uses unit_path.
 -- Ids match ontology/seed/entities.json and ontology/seed/relationships.json.
 -- commit_sha is null: git history is the version log until a sync pins a SHA.
 -- This file does not store transcripts or recordings.
@@ -160,7 +161,7 @@ insert into public.entity_relationships (id, relationship_type, from_type, from_
   ('rel.follows.note-portal-handoff', 'follows', 'action_item', 'action-item.note-portal-handoff', 'decision', 'decision.ship-curve-sheet-without-audio')
 on conflict (id) do nothing;
 
-insert into public.unit_refs (id, unit_type, scope, project_id, source_id, title, version, status, owner, repo_path, commit_sha, supersedes) values
+insert into public.unit_refs (id, unit_type, scope, project_id, source_id, title, version, status, owner, unit_path, commit_sha, supersedes) values
   ('kilnwatch-seed-ARC-001', 'ARC', 'project', 'project.kilnwatch', 'source.seed', 'Kiln Ledger and Studio Portal stay separate', 1, 'accepted', 'person-role.catalog-editor', 'projects/kilnwatch/units/kilnwatch-seed-ARC-001.md', null, null),
   ('kilnwatch-seed-DS-001', 'DS', 'project', 'project.kilnwatch', 'source.seed', 'Studio firing sheet', 1, 'accepted', 'person-role.catalog-editor', 'projects/kilnwatch/units/kilnwatch-seed-DS-001.md', null, null),
   ('kilnwatch-handoff-BR-001', 'BR', 'project', 'project.kilnwatch', 'source.handoff', 'Bench handoff for the calibration check', 1, 'accepted', 'person-role.studio-lead', 'projects/kilnwatch/units/kilnwatch-handoff-BR-001.md', null, null),

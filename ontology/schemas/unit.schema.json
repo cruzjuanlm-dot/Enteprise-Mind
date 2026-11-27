@@ -2,10 +2,26 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://enterprise-mind.local/ontology/schemas/unit.schema.json",
   "title": "Knowledge unit",
-  "description": "Frontmatter for one governed Markdown unit. The file stays in projects/{id}/units/ when scope becomes company. Git history is the version log.",
+  "description": "Frontmatter for one governed Markdown unit. The file stays in projects/{id}/units/ when scope becomes company. domain projects a company unit onto a core route. Git history is the version log.",
   "type": "object",
   "additionalProperties": false,
   "required": ["id", "title", "type", "scope", "project", "source_id", "version", "status", "owner", "entities", "supersedes"],
+  "allOf": [
+    {
+      "if": {
+        "properties": { "scope": { "const": "company" } },
+        "required": ["scope"]
+      },
+      "then": { "required": ["domain"] }
+    },
+    {
+      "if": {
+        "properties": { "type": { "const": "REQ" } },
+        "required": ["type"]
+      },
+      "then": { "required": ["acceptance_criteria"] }
+    }
+  ],
   "properties": {
     "id": {
       "type": "string",
@@ -55,6 +71,32 @@
           "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*-(DEC|REQ|ARC|DS|BR|WF|OQ)-[0-9]{3}$"
         }
       ]
+    },
+    "domain": {
+      "enum": ["market", "acquire", "deliver", "retain", "enable", "govern"]
+    },
+    "sub_type": {
+      "type": "string",
+      "minLength": 1
+    },
+    "meeting": {
+      "type": "string",
+      "pattern": "^meeting\\.[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
+    "meeting_date": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+    },
+    "systems_touched": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "acceptance_criteria": {
+      "type": "string",
+      "minLength": 1
     }
   }
 }

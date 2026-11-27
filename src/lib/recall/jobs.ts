@@ -188,7 +188,7 @@ async function ingestTranscript(event: RecallEvent, deps: RecallDeps): Promise<v
     projectId: meeting.projectId,
     sourceId,
     title: meeting.title,
-    repoPath: published.conversationPath,
+    unitPath: published.conversationPath,
     owner: "person-role.catalog-editor",
     entityIds: [meeting.projectId, ...published.decisions.map((note) => note.id), ...published.actions.map((note) => note.id)],
   });
@@ -200,7 +200,7 @@ async function ingestTranscript(event: RecallEvent, deps: RecallDeps): Promise<v
       projectId: meeting.projectId,
       sourceId,
       title: published.decisions[0]?.name ?? meeting.title,
-      repoPath: published.decisionPath,
+      unitPath: published.decisionPath,
       owner: "person-role.catalog-editor",
       entityIds: [meeting.projectId, ...published.decisions.map((note) => note.id)],
     });

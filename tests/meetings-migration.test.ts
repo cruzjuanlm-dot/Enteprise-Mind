@@ -14,6 +14,7 @@ test("meeting seed stores one standup, two action items, and one decision", { ti
   const db = new PGlite();
   await db.exec(entitiesSql);
   await db.exec(meetingsSql);
+  await db.exec(fs.readFileSync(path.join(root, "supabase/migrations/20261126120000_unit_refs_projection.sql"), "utf8"));
   await db.exec(seedEntities);
   await db.exec(seedMeetings);
 

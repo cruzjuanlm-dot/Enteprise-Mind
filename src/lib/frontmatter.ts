@@ -6,6 +6,33 @@ export type TypeCode = (typeof TYPE_CODES)[number];
 export const SCOPES = ["project", "company"] as const;
 export type UnitScope = (typeof SCOPES)[number];
 
+export const DOMAINS = ["market", "acquire", "deliver", "retain", "enable", "govern"] as const;
+export type UnitDomain = (typeof DOMAINS)[number];
+
+export const DOMAIN_ROUTE: Record<UnitDomain, string> = {
+  market: "core/value-flow/market/",
+  acquire: "core/value-flow/acquire/",
+  deliver: "core/value-flow/deliver/",
+  retain: "core/value-flow/retain/",
+  enable: "core/enable/",
+  govern: "core/govern/",
+};
+
+export function asDomain(value: unknown): UnitDomain | null {
+  return typeof value === "string" && (DOMAINS as readonly string[]).includes(value) ? (value as UnitDomain) : null;
+}
+
+export function asOptionalString(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  return trimmed ? trimmed : null;
+}
+
+export function asStringList(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return value.filter((item): item is string => typeof item === "string").map((item) => item.trim()).filter(Boolean);
+}
+
 export const TYPE_LABEL: Record<TypeCode, string> = {
   DEC: "Decision",
   REQ: "Requirement",
