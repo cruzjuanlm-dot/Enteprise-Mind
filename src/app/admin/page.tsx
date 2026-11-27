@@ -1,11 +1,13 @@
 import { cookies } from "next/headers";
 import { ADMIN_COOKIE } from "@/lib/admin/gate";
 import { buildAdminView, SEEDED_ADMIN_BOTS, type AdminBotRow } from "@/lib/admin/view";
+import { deskSettings } from "@/lib/desk/settings";
 import { dataMode } from "@/lib/env";
 import { recallStoreForEnv } from "@/lib/recall/store";
 import { createServiceClient } from "@/lib/supabase";
+import { seededSubscribers, seededTokens } from "@/lib/tokens/memory-store";
 import { tokenStoreForEnv } from "@/lib/tokens/runtime";
-import type { SubscriberRecord, TokenMetadata, WorkspaceRecord } from "@/lib/tokens/store";
+import { toTokenMetadata, type SubscriberRecord, type TokenMetadata, type WorkspaceRecord } from "@/lib/tokens/store";
 import type { SubscriptionRow } from "@/lib/admin/view";
 
 export const dynamic = "force-dynamic";
@@ -27,14 +29,17 @@ export default async function AdminPage({
   });
 
   if (view.kind === "unavailable") {
-    return (
-      <main className="panel p-4">
-        <h1 className="text-2xl">Admin is unavailable</h1>
-        <p className="mt-2 text-sm text-[var(--muted)]">
-          The admin secret is missing, or the Hearthline workspace has no admin role. Nothing is listed until both are present.
-        </p>
-      </main>
-    );
+    if (process.env.VERCEL_ENV === "production") {
+      return (
+        <main className="panel">
+          <h1>Admin is unavailable</h1>
+          <p className="meta">
+            The admin secret is missing, or the Hearthline workspace has no admin role. Nothing is listed until both are present.
+          </p>
+        </main>
+      );
+    }
+    return <DemoAdmin />;
   }
 
   if (view.kind === "sign-in") {
@@ -77,6 +82,9 @@ export default async function AdminPage({
       </Section>
       <Section title="Subscription">
         <SubscriptionList row={view.subscription} />
+      </Section>
+      <Section title="Settings">
+        <SettingsList />
       </Section>
       <Section title="Meeting bots">
         <BotList rows={view.bots} />
@@ -333,4 +341,84 @@ function shortDate(value: string): string {
   const parsed = Date.parse(value);
   if (Number.isNaN(parsed)) return value;
   return new Date(parsed).toISOString().slice(0, 16).replace("T", " ");
+}
+
+async function DemoAdmin() {
+  const people = seededSubscribers();
+  const tokens = await demoTokenRows();
+  return (
+    <main className="page">
+      <header className="page-head">
+        <div>
+          <h1>Admin</h1>
+          <p className="lede">
+            Demo fixture for Hearthline Instruments. The admin secret is unset, so this is not the live gate. Token
+            hashes are not shown. Creating a live token still needs the pepper and a signed-in subscriber.
+          </p>
+        </div>
+      </header>
+      <Section title="Settings">
+        <SettingsList />
+      </Section>
+      <Section title="Subscribers">
+        <ul className="plain stack-tight">
+          {people.map((person) => (
+            <li key={person.id}>
+              {person.displayName} · {person.email} · {person.role}
+            </li>
+          ))}
+        </ul>
+      </Section>
+      <Section title="API tokens">
+        <ul className="plain stack-tight">
+          {tokens.map((row) => (
+            <li key={row.id}>
+              <span className="mono">
+                {row.prefix}…{row.last4}
+              </span>
+              {" · "}
+              {row.label}
+              {" · "}
+              {row.scopes.join(", ")}
+              {" · "}
+              {row.revokedAt ? "revoked" : "active"}
+            </li>
+          ))}
+        </ul>
+      </Section>
+    </main>
+  );
+}
+
+function SettingsList() {
+  const settings = deskSettings();
+  const rows: [string, string][] = [
+    ["Data mode", settings.dataMode],
+    ["Supabase", settings.supabaseConfigured ? "configured" : "not configured"],
+    ["Extraction", settings.extraction],
+    ["LLM_ENABLED", "off"],
+    ["Recall", settings.recallConfigured ? "configured" : "mocked on the meetings page"],
+    ["Subscription", settings.subscriptionActive ? "active" : "inactive"],
+    ["Admin secret", settings.adminSecretConfigured ? "set" : "unset"],
+    ["Token pepper", settings.tokenPepperConfigured ? "set" : "unset"],
+  ];
+  return (
+    <dl className="fields">
+      {rows.map(([label, value]) => (
+        <div key={label}>
+          <dt>{label}</dt>
+          <dd>{value}</dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
+
+async function demoTokenRows(): Promise<TokenMetadata[]> {
+  try {
+    if (dataMode() === "memory") return tokenStoreForEnv().listAllMetadata();
+  } catch {
+    return seededTokens().map(toTokenMetadata);
+  }
+  return seededTokens().map(toTokenMetadata);
 }

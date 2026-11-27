@@ -157,7 +157,7 @@ export async function publishMeetingUnits(input: {
       projectId: input.projectId,
       sourceId,
       title: input.meetingTitle,
-      repoPath: conversationPath,
+      unitPath: conversationPath,
       entityIds: conversationEntities,
     },
     ...decisionUnits.map((decision) => ({
@@ -166,7 +166,7 @@ export async function publishMeetingUnits(input: {
       projectId: input.projectId,
       sourceId,
       title: decision.note.name,
-      repoPath: decision.path,
+      unitPath: decision.path,
       entityIds: unique([input.projectId, decision.note.id, OWNER]),
     })),
   ]);
@@ -302,12 +302,12 @@ function rememberUnits(
     projectId: string;
     sourceId: string;
     title: string;
-    repoPath: string;
+    unitPath: string;
     entityIds: string[];
   }[],
 ): void {
   for (const unit of units) {
-    const ref = `insert into public.unit_refs (id, unit_type, scope, project_id, source_id, title, version, status, owner, repo_path, commit_sha, supersedes) values (${sql(unit.id)}, ${sql(unit.unitType)}, 'project', ${sql(unit.projectId)}, ${sql(unit.sourceId)}, ${sql(unit.title)}, 1, 'draft', ${sql(OWNER)}, ${sql(unit.repoPath)}, null, null) on conflict (id) do nothing;`;
+    const ref = `insert into public.unit_refs (id, unit_type, scope, project_id, source_id, title, version, status, owner, unit_path, commit_sha, supersedes) values (${sql(unit.id)}, ${sql(unit.unitType)}, 'project', ${sql(unit.projectId)}, ${sql(unit.sourceId)}, ${sql(unit.title)}, 1, 'draft', ${sql(OWNER)}, ${sql(unit.unitPath)}, null, null) on conflict (id) do nothing;`;
     const links = unit.entityIds.map(
       (entityId) =>
         `insert into public.unit_ref_entities (unit_id, entity_id) values (${sql(unit.id)}, ${sql(entityId)}) on conflict (unit_id, entity_id) do nothing;`,

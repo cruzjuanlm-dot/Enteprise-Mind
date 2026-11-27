@@ -67,7 +67,7 @@ export type UnitRefRecord = {
   projectId: string;
   sourceId: string;
   title: string;
-  repoPath: string;
+  unitPath: string;
   owner: string;
   entityIds: string[];
 };
@@ -316,7 +316,7 @@ export function supabaseRecallStore(writer: SupabaseWriter = serviceWriter()): R
         version: 1,
         status: "draft",
         owner: ref.owner,
-        repo_path: ref.repoPath,
+        unit_path: ref.unitPath,
         commit_sha: null,
         supersedes: null,
       });

@@ -16,6 +16,10 @@ const meetingsSql = fs.readFileSync(
   "utf8",
 );
 const seedSql = fs.readFileSync(path.join(root, "supabase/seed_entities.sql"), "utf8");
+const projectionSql = fs.readFileSync(
+  path.join(root, "supabase/migrations/20261126120000_unit_refs_projection.sql"),
+  "utf8",
+);
 const coreSql = fs.readFileSync(path.join(root, "supabase/migrations/20261108120000_core.sql"), "utf8");
 
 async function coreDatabase(): Promise<PGlite> {
@@ -42,6 +46,7 @@ test("entities migration and seed apply on a fresh local database", { timeout: 1
   const db = new PGlite();
   await db.exec(entitiesSql);
   await db.exec(meetingsSql);
+  await db.exec(projectionSql);
   await db.exec(seedSql);
 
   const tables = await db.query<{ relname: string; relrowsecurity: boolean }>(
@@ -105,6 +110,7 @@ test("core, entities, meetings, and admin tokens apply in timestamp order", { ti
   await db.exec(entitiesSql);
   await db.exec(meetingsSql);
   await db.exec(adminSql);
+  await db.exec(projectionSql);
   await db.exec(seedPilot);
   await db.exec(seedSql);
   await db.exec(seedMeetings);

@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://enterprise-mind.local/ontology/schemas/comp.schema.json",
   "title": "Composition",
-  "description": "A reading that points at knowledge units and entity ids. Git history is the version log.",
+  "description": "A versioned reading stored as comps/{id}/COMP.md with this frontmatter. Optional registry_id and capabilities let a comp carry an agent, an MCP connector, a deck, or a course. comp.yaml is not a second file.",
   "type": "object",
   "additionalProperties": false,
   "required": ["id", "title", "summary", "version", "status", "owner", "units", "entities"],
@@ -42,7 +42,32 @@
       "type": "array",
       "items": {
         "type": "string",
-        "pattern": "^(?:system|environment|data-source|table-schema|integration|workflow|project|requirement|use-case|test-case|milestone|decision|person-role)\\.[a-z0-9]+(?:-[a-z0-9]+)*$"
+        "pattern": "^(?:system|environment|data-source|table-schema|integration|workflow|project|requirement|use-case|test-case|milestone|decision|person-role|action-item)\\.[a-z0-9]+(?:-[a-z0-9]+)*$"
+      }
+    },
+    "registry_id": {
+      "type": "string",
+      "pattern": "^comp\\.[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
+    "capabilities": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["kind", "name"],
+        "properties": {
+          "kind": {
+            "enum": ["agent", "mcp", "deck", "course"]
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "ref": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
       }
     }
   }

@@ -3,11 +3,20 @@ import fs from "node:fs";
 import path from "node:path";
 import { parse } from "yaml";
 import { deniedTerms } from "./denylist";
-import { parseFrontmatter, parseUnitId, projectSlug } from "./frontmatter";
+import { asDomain, asOptionalString, asStringList, parseFrontmatter, parseUnitId, projectSlug } from "./frontmatter";
 import { ENTITY_TYPES, entityTypeFromId, ID_PREFIX, type EntityType } from "./ontology";
 import { renderRoutingIndex, type UnitIndexEntry } from "./unit-index";
 
 export type Issue = { file: string; message: string };
+
+const SPEAKER_TURN = /^(?:[A-Z][a-z]+(?:[ \t]+[A-Z][a-z]+){0,3}):[ \t]+\S/gm;
+const TRANSCRIPT_MARK = /(?:^|\n)(?:WEBVTT\b|<v(?:\.[^>\s]+)?[ \t]+[^>\n]+>|\d{2}:\d{2}:\d{2}\.\d{3}[ \t]+-->)/;
+
+export function containsTranscript(text: string): boolean {
+  if (TRANSCRIPT_MARK.test(text)) return true;
+  const turns = text.match(SPEAKER_TURN);
+  return (turns?.length ?? 0) >= 2;
+}
 
 const REF_PREFIX: Record<string, string> = {
   system_id: "system.",
@@ -186,6 +195,15 @@ export function validateRepository(root: string): Issue[] {
     if (typeof data.owner === "string" && !entityIds.has(data.owner)) {
       issues.push({ file, message: `Unknown owner ${data.owner}.` });
     }
+    if (containsTranscript(markdown)) {
+      issues.push({ file, message: "Transcript text is not kept in the repository." });
+    }
+    if (data.scope === "company" && !asDomain(data.domain)) {
+      issues.push({ file, message: "scope company requires domain." });
+    }
+    if (data.type === "REQ" && !asOptionalString(data.acceptance_criteria)) {
+      issues.push({ file, message: "REQ requires acceptance_criteria." });
+    }
     parsedUnits.push({ file, data });
     if (parsedId && typeof data.title === "string" && typeof data.project === "string" && typeof data.source_id === "string") {
       indexEntries.push({
@@ -201,6 +219,12 @@ export function validateRepository(root: string): Issue[] {
         entities: Array.isArray(data.entities) ? data.entities.filter((item): item is string => typeof item === "string") : [],
         supersedes: typeof data.supersedes === "string" ? data.supersedes : null,
         path: file,
+        domain: asDomain(data.domain),
+        subType: asOptionalString(data.sub_type),
+        meeting: asOptionalString(data.meeting),
+        meetingDate: asOptionalString(data.meeting_date),
+        systemsTouched: asStringList(data.systems_touched),
+        acceptanceCriteria: asOptionalString(data.acceptance_criteria),
       });
     }
   }
@@ -248,6 +272,11 @@ export function validateRepository(root: string): Issue[] {
     }
   }
 
+  const triagePath = path.join(root, "_control/triage.md");
+  if (fs.existsSync(triagePath) && containsTranscript(fs.readFileSync(triagePath, "utf8"))) {
+    issues.push({ file: "_control/triage.md", message: "Transcript text is not kept in the repository." });
+  }
+
   assertSeedSql(root, entityIds, relationshipIds, unitIds, issues);
   assertMigration(root, issues);
   assertRoutingIndex(root, indexEntries, issues);
@@ -281,6 +310,15 @@ export function validateUnitFile(
         issues.push({ file, message: `Unknown entity id ${String(entityId)}.` });
       }
     }
+  }
+  if (containsTranscript(markdown)) {
+    issues.push({ file, message: "Transcript text is not kept in the repository." });
+  }
+  if (data.scope === "company" && !asDomain(data.domain)) {
+    issues.push({ file, message: "scope company requires domain." });
+  }
+  if (data.type === "REQ" && !asOptionalString(data.acceptance_criteria)) {
+    issues.push({ file, message: "REQ requires acceptance_criteria." });
   }
   return issues;
 }
@@ -395,6 +433,10 @@ function walkUnits(root: string, issues: Issue[]): string[] {
   for (const entry of fs.readdirSync(projectsRoot, { withFileTypes: true })) {
     if (!entry.isDirectory()) continue;
     if (entry.name === "_template") continue;
+    const contextFile = `projects/${entry.name}/PROJECT_CONTEXT.md`;
+    if (!fs.existsSync(path.join(root, contextFile))) {
+      issues.push({ file: contextFile, message: "Missing PROJECT_CONTEXT.md." });
+    }
     const unitsDir = path.join(projectsRoot, entry.name, "units");
     const relativeDir = `projects/${entry.name}/units`;
     if (!fs.existsSync(unitsDir)) {
@@ -403,6 +445,7 @@ function walkUnits(root: string, issues: Issue[]): string[] {
     }
     for (const unitFile of fs.readdirSync(unitsDir, { withFileTypes: true })) {
       const relative = `${relativeDir}/${unitFile.name}`;
+      if (unitFile.name === ".gitkeep") continue;
       if (!unitFile.isFile() || !unitFile.name.endsWith(".md")) {
         issues.push({ file: relative, message: "A unit file must be one Markdown file." });
         continue;

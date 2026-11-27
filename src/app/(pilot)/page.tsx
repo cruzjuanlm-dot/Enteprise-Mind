@@ -1,232 +1,150 @@
 import Link from "next/link";
-import { RefreshWhilePending } from "@/components/refresh";
-import { UnitPanel } from "@/components/unit-panel";
-import { canIngest } from "@/lib/authz";
-import { extractDeterministic } from "@/lib/extract";
-import { FIXTURES } from "@/lib/fixtures";
-import { UNIT_LABEL } from "@/lib/present";
-import { SAMPLE_TRANSCRIPT } from "@/lib/sample";
-import { getContext } from "@/lib/session";
+import { CORE_AREAS, projectsIn, visibleUnits, type VisibleUnit } from "@/lib/desk/read";
+import { deskSnapshot } from "@/lib/desk/store";
+import { DOMAINS, TYPE_LABEL, type UnitDomain } from "@/lib/frontmatter";
+import { listComps } from "@/lib/catalog";
+import { loadSeedEntities } from "@/lib/ontology";
 
-export default async function HomePage() {
-  const { actor, mode, repo } = await getContext();
-  const fixtureProject = await repo.getProject(FIXTURES.rolloutProject);
-  const fixtureDepartment = fixtureProject ? await repo.getDepartment(fixtureProject.departmentId) : null;
-  const fixtureTenant = fixtureProject ? await repo.getTenant(fixtureProject.tenantId) : null;
-  const drafts = extractDeterministic(SAMPLE_TRANSCRIPT);
-  const [lead, ...rest] = drafts;
-  const scope = [fixtureTenant?.name, fixtureDepartment?.name, fixtureProject?.name].filter(Boolean).join(" / ");
+export const dynamic = "force-dynamic";
 
-  if (!actor) {
-    return (
-      <main className="page">
-        <header className="page-head">
-          <div>
-            <h1>Review proposed knowledge</h1>
-            <p className="lede">
-              Submit a transcript, compare each proposal with its quoted passage, then accept or reject it. Accepted
-              units become the shared context other people and systems can read. Rejected units stay out. This demo
-              reads labeled text on the server and does not call a model.
-            </p>
-          </div>
-          <Link className="btn" href="/login">
-            Sign in with a demo fixture
-          </Link>
-        </header>
-        <FixturePreview scope={scope} projectName={fixtureProject?.name ?? null} lead={lead} rest={rest} />
-        <CatalogSection />
-      </main>
-    );
-  }
-
-  const membership = actor.memberships[0];
-  const tenant = membership ? await repo.getTenant(membership.tenantId) : null;
-  const projects = await repo.listProjects(actor);
-  const [proposed, jobs] = await Promise.all([repo.listUnits(actor, "proposed"), repo.listJobs(actor)]);
-  const acceptedGroups = await Promise.all(
-    projects.map(async (project) => ({ project, units: await repo.listProjectUnits(actor, project.id) })),
-  );
-  const pending = jobs.some((job) => job.status === "received" || job.status === "stored" || job.status === "extracting");
-  const canSubmit = actor.memberships.some((item) => canIngest(actor, item.tenantId));
-  const accepted = acceptedGroups.flatMap((group) => group.units.map((unit) => ({ ...unit, project: group.project })));
-  const storage =
-    mode === "memory" ? "Local demo process, not Supabase." : `Stored for ${tenant?.name ?? "this company"}.`;
+export default function KnowledgePage() {
+  const state = deskSnapshot();
+  const units = visibleUnits(process.cwd(), state);
+  const names = new Map(loadSeedEntities().map((entity) => [entity.id, entity.name]));
+  const projects = projectsIn(units, names);
+  const company = units.filter((unit) => unit.scope === "company");
+  const proposed = state.proposals.filter((proposal) => proposal.status === "proposed").length;
+  const comps = listComps();
 
   return (
     <main className="page">
-      <RefreshWhilePending pending={pending} />
       <header className="page-head">
         <div>
-          <h1>Review proposed knowledge</h1>
+          <h1>Knowledge</h1>
           <p className="lede">
-            {tenant?.name ?? "This company"} keeps proposed units out of shared context until a reviewer accepts or
-            rejects them. Accepted units are what members, and other systems reading this project, can use.
+            Hearthline Instruments keeps one unit per file. Core routes are the company view. Project files stay where
+            they were written. This demo reads the committed Kilnwatch seed and any unit you approve in this session.
           </p>
         </div>
-        {proposed.length > 0 ? (
-          <Link className="btn" href="/review">
-            Open the review queue
-          </Link>
-        ) : canSubmit ? (
-          <Link className="btn" href="/ingest">
-            Submit the fixture transcript
-          </Link>
-        ) : null}
+        <form className="cluster" action="/search" method="get">
+          <label className="field">
+            <span className="label flat">Search units</span>
+            <input name="q" type="search" placeholder="Curve, decision, owner" />
+          </label>
+          <button className="btn" type="submit">
+            Search
+          </button>
+        </form>
       </header>
 
-      {pending ? (
+      {proposed > 0 ? (
         <p className="notice" role="status">
-          Extraction is still running. Proposals show up in the review queue when the job is ready.{" "}
-          <Link href="/jobs">View jobs</Link>
+          {proposed} proposed {proposed === 1 ? "unit is" : "units are"} waiting. <Link href="/proposals">Review them</Link>
         </p>
-      ) : null}
+      ) : (
+        <p className="meta">
+          <Link href="/compile">Compile a transcript</Link> to propose units. Nothing is shared until you approve it.
+        </p>
+      )}
 
-      {proposed.length > 0 ? (
-        <section className="stack" aria-labelledby="proposed-heading">
-          <div className="section-head">
-            <div>
-              <h2 id="proposed-heading">Waiting for review</h2>
-              <p className="meta">
-                {proposed.length} proposed {proposed.length === 1 ? "unit" : "units"} in {tenant?.name ?? "this company"}.{" "}
-                {storage} Order: as extracted.
-              </p>
-            </div>
+      <div className="board">
+        <section className="stack" aria-labelledby="core-heading">
+          <div>
+            <h2 id="core-heading">Core</h2>
+            <p className="meta">Company scope is a tag. The file does not move. Domain picks the route.</p>
           </div>
-          <ol className="queue">
-            {proposed.map((unit) => {
-              const project = projects.find((item) => item.id === unit.projectId);
+          <ul className="queue">
+            {CORE_AREAS.map((area) => {
+              const count = company.filter((unit) => unit.domain === area.slug).length;
               return (
-                <li key={unit.id}>
-                  <Link href={`/review?unit=${unit.id}`}>
-                    <span className="queue-title">{unit.title}</span>
+                <li key={area.slug}>
+                  <Link href={`/areas/${area.slug}`}>
+                    <span className="queue-title">{area.group === area.title ? area.title : `${area.group} · ${area.title}`}</span>
                     <span className="meta">
-                      {UNIT_LABEL[unit.unitType]} · {project?.name ?? "Unassigned"} · Proposed
+                      {count} company {count === 1 ? "unit" : "units"}
                     </span>
                   </Link>
                 </li>
               );
             })}
-          </ol>
+          </ul>
         </section>
-      ) : null}
 
-      {accepted.length > 0 ? (
-        <section className="stack" aria-labelledby="context-heading">
+        <section className="stack" aria-labelledby="project-heading">
           <div>
-            <h2 id="context-heading">Shared context</h2>
-            <p className="meta">Accepted units only. {storage}</p>
+            <h2 id="project-heading">Projects</h2>
+            <p className="meta">Units live in projects/{"{id}"}/units/.</p>
           </div>
-          <ol className="queue">
-            {accepted.map((unit) => (
-              <li key={unit.id}>
-                <Link href={`/projects/${unit.project.id}`}>
-                  <span className="queue-title">{unit.title}</span>
-                  <span className="meta">
-                    {UNIT_LABEL[unit.unitType]} · {unit.project.name} · Accepted
-                  </span>
+          {projects.length === 0 ? (
+            <p className="panel">No project units yet.</p>
+          ) : (
+            projects.map((project) => (
+              <div key={project.id} className="stack-tight">
+                <h3>
+                  <Link href={`/work/${project.slug}`}>{project.name}</Link>
+                </h3>
+                <UnitList units={project.units} />
+              </div>
+            ))
+          )}
+        </section>
+      </div>
+
+      <section className="stack" id="company" aria-labelledby="company-heading">
+        <div>
+          <h2 id="company-heading">Company scope</h2>
+          <p className="meta">Projected by domain. Empty routes are still part of the tree.</p>
+        </div>
+        {DOMAINS.map((domain) => (
+          <DomainGroup key={domain} domain={domain} units={company.filter((unit) => unit.domain === domain)} />
+        ))}
+      </section>
+
+      {comps.length > 0 ? (
+        <section className="stack" aria-labelledby="comp-heading">
+          <h2 id="comp-heading">Compositions</h2>
+          <ul className="queue">
+            {comps.map((comp) => (
+              <li key={comp.id}>
+                <Link href="/catalog">
+                  <span className="queue-title">{comp.title}</span>
+                  <span className="meta">{comp.summary}</span>
                 </Link>
               </li>
             ))}
-          </ol>
+          </ul>
         </section>
       ) : null}
-
-      {proposed.length === 0 && accepted.length === 0 && !pending ? (
-        canSubmit ? (
-          <FixturePreview
-            scope={scope}
-            projectName={fixtureProject?.name ?? null}
-            lead={lead}
-            rest={rest}
-            note={
-              tenant && fixtureTenant && tenant.id !== fixtureTenant.id
-                ? `The fixture text is about ${fixtureTenant.name}. Submitting it stores the transcript on the project you select in ${tenant.name}.`
-                : `Submitting the fixture files it on the project you select. The form starts on ${fixtureProject?.name ?? "the first visible project"}.`
-            }
-          />
-        ) : (
-          <section className="panel stack-tight">
-            <h2>No accepted units</h2>
-            <p>
-              This role reads shared context. It cannot submit transcripts or accept proposals. Projects with accepted
-              units will be listed here.
-            </p>
-          </section>
-        )
-      ) : canSubmit && (proposed.length > 0 || accepted.length > 0) ? (
-        <p className="meta">
-          The synthetic transcript is still available on <Link href="/ingest">Submit transcript</Link>. It is not a
-          stored record until you submit it.
-        </p>
-      ) : null}
-      <CatalogSection />
     </main>
   );
 }
 
-function CatalogSection() {
+function DomainGroup({ domain, units }: { domain: UnitDomain; units: VisibleUnit[] }) {
+  const area = CORE_AREAS.find((item) => item.slug === domain);
   return (
-    <section className="stack" aria-labelledby="catalog-heading">
-      <div>
-        <h2 id="catalog-heading">Knowledge catalog</h2>
-        <p className="measure">
-          Governed Hearthline units live in the repository. Entity rows are read from Supabase when it is configured,
-          and from the committed seed otherwise.
-        </p>
-      </div>
-      <div className="cluster">
-        <Link className="btn" href="/catalog">
-          Browse units
-        </Link>
-        <Link className="btn secondary" href="/entities">
-          Browse entities
-        </Link>
-      </div>
-    </section>
+    <div className="stack-tight">
+      <h3>
+        <Link href={`/areas/${domain}`}>{area?.title ?? domain}</Link>
+      </h3>
+      {units.length === 0 ? <p className="meta">No company units.</p> : <UnitList units={units} />}
+    </div>
   );
 }
 
-function FixturePreview({
-  scope,
-  projectName,
-  lead,
-  rest,
-  note,
-}: {
-  scope: string;
-  projectName: string | null;
-  lead: ReturnType<typeof extractDeterministic>[number] | undefined;
-  rest: ReturnType<typeof extractDeterministic>;
-  note?: string;
-}) {
-  if (!lead) return null;
+function UnitList({ units }: { units: VisibleUnit[] }) {
   return (
-    <section className="stack" aria-labelledby="fixture-heading">
-      <div>
-        <h2 id="fixture-heading">Fixture preview</h2>
-        <p className="meta">
-          Not stored. {scope ? `${scope}. ` : ""}
-          The deterministic reader produced this from the synthetic transcript. No model was called.
-        </p>
-        {note ? <p className="help follow">{note}</p> : null}
-      </div>
-      <UnitPanel unit={lead} projectName={projectName} preview />
-      {rest.length > 0 ? (
-        <div className="panel stack-tight">
-          <h3 className="label flat">Also in this transcript</h3>
-          <ul className="plain stack-tight">
-            {rest.map((unit) => (
-              <li key={unit.title} className="cluster">
-                <span className="status" data-tone="neutral">
-                  {UNIT_LABEL[unit.unitType]}
-                </span>
-                <span>{unit.title}</span>
-                <span className="meta">{unit.ownerPresence === "unknown" ? "Owner unknown" : `Owner ${unit.ownerName}`}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      ) : null}
-    </section>
+    <ul className="queue">
+      {units.map((unit) => (
+        <li key={unit.id}>
+          <Link href={`/units/${unit.id}`}>
+            <span className="queue-title">{unit.title}</span>
+            <span className="meta">
+              {TYPE_LABEL[unit.type]} · {unit.scope}
+              {unit.domain ? ` · ${unit.domain}` : ""} · {unit.origin === "session" ? "This session" : "Git"}
+            </span>
+          </Link>
+        </li>
+      ))}
+    </ul>
   );
 }

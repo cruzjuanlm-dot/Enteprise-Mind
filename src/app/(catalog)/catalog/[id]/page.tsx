@@ -26,18 +26,21 @@ export default async function UnitPage({ params }: { params: Promise<{ id: strin
   return (
     <main className="grid gap-6">
       <article className="panel p-6">
-        <p className="text-sm text-[var(--muted)]">
+        <p className="meta">
           <Link href="/catalog">Catalog</Link>
           {" · "}
           {TYPE_LABEL[unit.entry.type as TypeCode]}
           {" · "}
-          <span className="chip" data-status={unit.entry.status}>
+          <span className="status" data-tone={unit.entry.status === "accepted" ? "success" : undefined}>
             {unit.entry.status}
           </span>
           {" · "}
-          <span className="chip">{unit.entry.scope}</span>
+          <span className="status" data-tone="neutral">
+            {unit.entry.scope}
+            {unit.entry.domain ? ` · ${unit.entry.domain}` : ""}
+          </span>
         </p>
-        <h1 className="mt-3 text-4xl">{unit.entry.title}</h1>
+        <h1>{unit.entry.title}</h1>
         <p className="mt-3 text-sm text-[var(--muted)]">
           {unit.entry.id} · Version {unit.entry.version} · Owner {names.get(unit.entry.owner) ?? unit.entry.owner}
         </p>

@@ -4,23 +4,34 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 
-const LINKS = [
+const PRIMARY = [
+  { href: "/", label: "Knowledge" },
+  { href: "/search", label: "Search" },
+  { href: "/compile", label: "Compile" },
+  { href: "/proposals", label: "Proposals" },
+  { href: "/meetings", label: "Meetings" },
+  { href: "/entities", label: "Entities" },
+  { href: "/admin", label: "Admin" },
+];
+
+const PILOT = [
   { href: "/review", label: "Review queue" },
   { href: "/ingest", label: "Submit transcript" },
   { href: "/departments", label: "Departments" },
   { href: "/jobs", label: "Jobs" },
   { href: "/tokens", label: "Tokens" },
   { href: "/catalog", label: "Catalog" },
-  { href: "/entities", label: "Entities" },
 ];
 
 export function AppFrame({
   showNav,
+  signedIn = false,
   scope,
   note,
   children,
 }: {
   showNav: boolean;
+  signedIn?: boolean;
   scope: string;
   note: string | null;
   children: ReactNode;
@@ -74,6 +85,8 @@ export function AppFrame({
     };
   }, [open]);
 
+  const navigation = showNav && pathname !== "/login";
+
   return (
     <div className="app">
       <a className="skip" href="#main">
@@ -88,7 +101,7 @@ export function AppFrame({
           {note ? <p className="meta">{note}</p> : null}
         </div>
         <div className="top-actions">
-          {showNav ? (
+          {navigation ? (
             <button
               ref={toggleRef}
               className="nav-toggle btn secondary"
@@ -100,12 +113,13 @@ export function AppFrame({
             >
               {open ? "Close menu" : "Menu"}
             </button>
-          ) : pathname === "/login" ? null : (
+          ) : null}
+          {!signedIn && pathname !== "/login" ? (
             <Link className="btn secondary" href="/login">
               Sign in
             </Link>
-          )}
-          {showNav ? (
+          ) : null}
+          {signedIn ? (
             <form action="/api/auth/logout" method="post" inert={open ? true : undefined}>
               <button className="btn secondary" type="submit">
                 Sign out
@@ -115,7 +129,7 @@ export function AppFrame({
         </div>
       </header>
       <div className="app-body">
-        {showNav ? (
+        {navigation ? (
           <>
             {open ? (
               <button
@@ -132,19 +146,26 @@ export function AppFrame({
             ) : null}
             <nav id="app-nav" className="nav" aria-labelledby={labelId} data-open={open ? "true" : "false"} data-drawer-focus="true">
               <p id={labelId} className="nav-label">
-                Workspace
+                Knowledge
               </p>
               <ul>
-                {LINKS.map((link) => {
-                  const current = pathname === link.href || pathname.startsWith(`${link.href}/`);
-                  return (
-                    <li key={link.href}>
-                      <Link href={link.href} aria-current={current ? "page" : undefined}>
-                        {link.label}
-                      </Link>
-                    </li>
-                  );
-                })}
+                {PRIMARY.map((link) => (
+                  <li key={link.href}>
+                    <Link href={link.href} aria-current={currentLink(pathname, link.href) ? "page" : undefined}>
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+              <p className="nav-label">Pilot</p>
+              <ul>
+                {PILOT.map((link) => (
+                  <li key={link.href}>
+                    <Link href={link.href} aria-current={currentLink(pathname, link.href) ? "page" : undefined}>
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
               </ul>
             </nav>
           </>
@@ -155,6 +176,11 @@ export function AppFrame({
       </div>
     </div>
   );
+}
+
+function currentLink(pathname: string, href: string): boolean {
+  if (href === "/") return pathname === "/";
+  return pathname === href || pathname.startsWith(`${href}/`);
 }
 
 function drawerItems(): HTMLElement[] {
